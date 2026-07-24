@@ -128,7 +128,7 @@
         <button onclick="openAddStyle()" title="Nuevo Estilo">➕</button>
         <button onclick="toggleModal('settingsModal')" title="Ajustes">⚙️</button>
     </div>
-    <div id="statusBar" style="padding:4px 12px; font-size:11px; color:var(--text-muted); background:var(--header-bg); border-bottom:1px solid var(--border-color); min-height:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Listo.</div>
+    <div id="statusBar" style="padding:4px 12px; font-size:11px; color:var(--text-muted); background:var(--header-bg); border-bottom:1px solid var(--border-color); min-height:14px; max-height:48px; overflow-y:auto; line-height:1.4;">Listo.</div>
 
     <textarea id="input" oninput="handleInput()" placeholder="Pega el guion aquí..."></textarea>
     
@@ -634,14 +634,22 @@
                     ti.position = [doc.width / 2, doc.height / 2];
                 }
                 
+                doc.activeLayer = layer;
+
                 var fontOk = true;
                 try { ti.font = "${style.font}"; } catch(fontErr) { fontOk = false; }
-                ti.size = ${style.size * scale};
-                ti.justification = Justification.${style.align || "CENTER"};
 
-                var textColor = new SolidColor();
-                textColor.rgb.red = ${cR}; textColor.rgb.green = ${cG}; textColor.rgb.blue = ${cB};
-                ti.color = textColor;
+                var sizeOk = true;
+                try { ti.size = ${style.size * scale}; } catch(sizeErr) { sizeOk = false; }
+
+                try { ti.justification = Justification.${style.align || "CENTER"}; } catch(e) {}
+
+                var colorOk = true;
+                try {
+                    var textColor = new SolidColor();
+                    textColor.rgb.red = ${cR}; textColor.rgb.green = ${cG}; textColor.rgb.blue = ${cB};
+                    ti.color = textColor;
+                } catch(colorErr) { colorOk = false; }
 
                 try { ti.useAutoLeading = false; ti.leading = ${style.size * ((style.leading || 120) / 100) * scale}; } catch(e) {}
 
@@ -653,6 +661,7 @@
                 var strokeOk = true;
                 var strokeSize = ${ (style.strokeSize || 0) * scale };
                 if (strokeSize > 0) {
+                    doc.activeLayer = layer;
                     try {
                         var desc = new ActionDescriptor();
                         var ref = new ActionReference();
@@ -661,11 +670,14 @@
                         desc.putReference(charIDToTypeID("null"), ref);
                         
                         var fxDesc = new ActionDescriptor();
+                        // Escala global del estilo. Si falta, algunos motores (incl. Photopea)
+                        // pueden renderizar el efecto al 0% de tamaño, es decir: invisible.
+                        fxDesc.putUnitDouble(charIDToTypeID("Scl "), charIDToTypeID("#Prc"), 100);
+
                         var strokeDesc = new ActionDescriptor();
-                        
                         strokeDesc.putBoolean(charIDToTypeID("enab"), true);
                         strokeDesc.putEnumerated(charIDToTypeID("Styl"), charIDToTypeID("FStl"), charIDToTypeID("OutF")); // Outside
-                        strokeDesc.putEnumerated(charIDToTypeID("PntT"), charIDToTypeID("FrFl"), charIDToTypeID("SldC")); // Solid Color
+                        strokeDesc.putEnumerated(charIDToTypeID("PntT"), charIDToTypeID("FrFl"), charIDToTypeID("SClr")); // Solid Color (el enum correcto es "SClr", no "SldC")
                         strokeDesc.putEnumerated(charIDToTypeID("Md  "), charIDToTypeID("BlnM"), charIDToTypeID("Nrml")); // Normal Blend
                         strokeDesc.putUnitDouble(charIDToTypeID("Opct"), charIDToTypeID("#Prc"), 100);
                         strokeDesc.putUnitDouble(charIDToTypeID("Sz  "), charIDToTypeID("#Pxl"), strokeSize);
@@ -676,7 +688,10 @@
                         colorDesc.putDouble(charIDToTypeID("Bl  "), ${sB});
                         strokeDesc.putObject(charIDToTypeID("Clr "), charIDToTypeID("RGBC"), colorDesc);
                         
-                        fxDesc.putObject(charIDToTypeID("FrFX"), charIDToTypeID("FrFX"), strokeDesc);
+                        // OJO: el class ID del objeto de trazo dentro de un Layer Style es "Lefx",
+                        // NO "FrFX" (ese era el bug: la acción se ejecutaba sin error pero no
+                        // dibujaba nada porque el objeto quedaba con el tipo equivocado).
+                        fxDesc.putObject(charIDToTypeID("FrFX"), charIDToTypeID("Lefx"), strokeDesc);
                         desc.putObject(charIDToTypeID("T   "), charIDToTypeID("Lefx"), fxDesc);
                         
                         executeAction(charIDToTypeID("setd"), desc, DialogModes.NO);
@@ -684,9 +699,16 @@
                 }
 
                 var report = "Texto colocado: " + selInfo + ".";
+                var actualSize = "?", actualColor = "?";
+                try { actualSize = ti.size.value !== undefined ? ti.size.value : ti.size; } catch(e2) {}
+                try { actualColor = ti.color.rgb.red + "," + ti.color.rgb.green + "," + ti.color.rgb.blue; } catch(e2) {}
+                report += " Tamaño pedido: ${style.size * scale}, aplicado: " + actualSize + ".";
+                report += " Color pedido: ${cR},${cG},${cB}, aplicado: " + actualColor + ".";
                 if (!fontOk) report += " AVISO: la fuente '${style.font}' no existe en Photopea, se usó la fuente por defecto.";
+                if (!sizeOk) report += " AVISO: el tamaño lanzó un error al aplicarse.";
+                if (!colorOk) report += " AVISO: el color lanzó un error al aplicarse.";
                 if (strokeSize > 0 && !strokeOk) report += " AVISO: el trazo no se pudo aplicar.";
-                app.echoToOE(JSON.stringify({type: fontOk && strokeOk ? "debug" : "error", msg: report}));
+                app.echoToOE(JSON.stringify({type: (fontOk && sizeOk && colorOk && strokeOk) ? "debug" : "error", msg: report}));
               } catch(mainErr) {
                 app.echoToOE(JSON.stringify({type:"error", msg:"Fallo al crear el texto: " + mainErr.message}));
               }
