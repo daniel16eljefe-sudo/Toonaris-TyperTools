@@ -2,231 +2,247 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    <title>TyperTools GNOME UI</title>
     <style>
-        /* TEMA ESTILO GNOME (Libadwaita Dark) */
+        /* TEMA INSPIRADO EN GNOME (ADWAITA DARK) */
         :root { 
-            --bg-window: #1e1e1e;       /* Fondo principal */
-            --bg-card: #2c2c2c;         /* Fondo de tarjetas/modales */
-            --bg-input: #1b1b1b;        /* Fondo de inputs */
-            --accent: #3584e4;          /* Azul GNOME */
+            --bg-window: #242424; 
+            --bg-card: #303030; 
+            --bg-input: #1e1e1e;
+            --accent: #3584e4; 
             --accent-hover: #4a90d9;
-            --danger: #e01b24;          /* Rojo GNOME */
-            --danger-hover: #c01c28;
-            --text-main: #ffffff;
-            --text-muted: #9a9996;
-            --border: rgba(255, 255, 255, 0.08);
-            --radius-window: 12px;
-            --radius-card: 8px;
-            --radius-btn: 6px;
+            --text-main: #ffffff; 
+            --text-dim: #9a9a9a;
+            --border: #454545; 
+            --danger: #c01c28;
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --radius-sm: 6px;
         }
         
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+        * { box-sizing: border-box; }
         
         body { 
-            background: var(--bg-window); color: var(--text-main); font-size: 13px; 
-            display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none;
+            background: var(--bg-window); color: var(--text-main); 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            padding: 0; margin: 0; font-size: 13px; 
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
+            user-select: none;
         }
-
-        /* HEADER / NAVBAR */
+        
+        /* BARRA SUPERIOR */
         .top-nav { 
-            display: flex; gap: 8px; padding: 10px; background: var(--bg-card); 
-            border-bottom: 1px solid var(--border); align-items: center; 
+            display: flex; gap: 8px; padding: 12px; 
+            background: var(--bg-card); border-bottom: 1px solid var(--border); 
+            align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         
-        button { 
-            cursor: pointer; border: none; font-weight: 600; font-size: 13px; 
-            border-radius: var(--radius-btn); transition: background 0.2s; 
+        button {
+            font-family: inherit; font-size: 13px; font-weight: 600;
+            cursor: pointer; border: none; border-radius: var(--radius-sm);
+            padding: 8px 12px; transition: all 0.2s;
         }
         
-        .btn-main { background: var(--accent); color: white; padding: 10px 14px; flex: 1; }
-        .btn-main:hover { background: var(--accent-hover); }
-        .btn-icon { background: rgba(255,255,255,0.1); color: white; padding: 10px; min-width: 38px; display: flex; justify-content: center; }
-        .btn-icon:hover { background: rgba(255,255,255,0.15); }
-        .btn-danger { background: var(--danger); color: white; padding: 10px; width: 100%; margin-top: 10px; }
-        .btn-danger:hover { background: var(--danger-hover); }
-
+        .btn-primary { background: var(--accent); color: white; flex: 1; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-icon { background: var(--bg-input); color: white; border: 1px solid var(--border); padding: 8px 14px; }
+        .btn-icon:hover { background: #444; }
+        .btn-danger { background: var(--danger); color: white; width: 100%; margin-top: 10px; }
+        
         .scale-section { 
             display: flex; align-items: center; background: var(--bg-input); 
-            border-radius: var(--radius-btn); border: 1px solid var(--border); padding: 0 10px; height: 38px; 
+            border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 0 8px; height: 34px; 
         }
         .scale-input { 
             background: transparent; border: none; color: white; width: 40px; 
-            text-align: center; font-weight: bold; outline: none; font-size: 13px; 
+            text-align: center; font-weight: bold; outline: none; font-size: 13px;
         }
 
-        /* TEXTAREA */
+        /* ÁREA DE TEXTO PRINCIPAL */
         textarea#input { 
-            width: 100%; height: 100px; background: var(--bg-window); color: var(--text-main); 
-            border: none; border-bottom: 1px solid var(--border); padding: 12px; resize: none; 
-            font-family: monospace; outline: none; flex-shrink: 0;
+            width: 100%; height: 90px; background: var(--bg-input); color: var(--text-main); 
+            border: none; border-bottom: 1px solid var(--border); padding: 12px; 
+            resize: none; font-family: monospace; outline: none; flex-shrink: 0;
         }
         
-        /* MAIN CONTENT (LISTA Y ESTILOS) */
+        /* CONTENIDO PRINCIPAL (LISTA + ESTILOS) */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         
-        .list-box { flex: 1.5; overflow-y: auto; background: var(--bg-window); }
-        .row { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 10px 14px; cursor: pointer; transition: background 0.1s; }
-        .row:hover { background: rgba(255,255,255,0.03); }
-        .row.active { background: rgba(53, 132, 228, 0.15); border-left: 4px solid var(--accent); padding-left: 10px; }
-        .tag-pill { background: #f6d32d; color: #000; padding: 2px 6px; border-radius: 4px; margin-right: 8px; font-weight: 800; font-size: 10px; }
-        .row-num { width: 25px; color: var(--text-muted); font-size: 11px; }
+        .list-box { flex: 2; overflow-y: auto; background: var(--bg-window); }
+        .row { display: flex; align-items: center; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #2a2a2a; transition: background 0.1s;}
+        .row:hover { background: #2a2a2a; }
+        .row.active { background: #1a3b5c; border-left: 4px solid var(--accent); padding-left: 10px; }
+        .tag-pill { background: #f9f06b; color: #000; padding: 2px 6px; border-radius: 4px; margin-right: 8px; font-size: 10px; font-weight: bold; }
 
-        .style-grid-container { background: var(--bg-card); padding: 10px; border-top: 1px solid var(--border); max-height: 150px; overflow-y: auto;}
-        .style-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
-        .style-item { 
-            display: flex; align-items: center; background: rgba(255,255,255,0.05); 
-            padding: 8px 10px; border-radius: var(--radius-btn); cursor: pointer; border: 1px solid transparent; 
+        .style-grid { 
+            flex: 1.2; overflow-y: auto; background: var(--bg-card); 
+            padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start;
+            border-top: 1px solid var(--border);
         }
-        .style-item:hover { background: rgba(255,255,255,0.08); }
-        .style-item.active { background: rgba(53, 132, 228, 0.2); border-color: var(--accent); }
-        .style-name { flex: 1; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .edit-icon { color: var(--text-muted); cursor: pointer; padding-left: 5px; }
-        .edit-icon:hover { color: white; }
+        
+        .style-item { 
+            display: flex; align-items: center; background: var(--bg-input); padding: 10px; 
+            border-radius: var(--radius-md); cursor: pointer; border: 1px solid var(--border); 
+            transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .style-item:hover { border-color: #666; }
+        .style-item.active { background: #1c2b39; border-color: var(--accent); }
+        .style-name { flex: 1; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .edit-icon { color: var(--text-dim); padding: 4px; border-radius: 4px; }
+        .edit-icon:hover { background: rgba(255,255,255,0.1); color: white; }
 
-        /* MODALES (GNOME Style) */
+        /* MODALES (DISEÑO TIPO TARJETA GNOME) */
         .modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; 
-            padding: 20px; align-items: center; justify-content: center; 
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 200; 
+            justify-content: center; align-items: center; padding: 15px; 
         }
         .modal-content { 
-            background: var(--bg-card); width: 100%; max-width: 450px; border-radius: var(--radius-window); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; 
-            max-height: 90vh; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;
+            background: var(--bg-card); width: 100%; max-width: 400px; max-height: 90vh; 
+            overflow-y: auto; border-radius: var(--radius-lg); padding: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border);
         }
-        .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h3 { font-size: 15px; font-weight: 600; margin: 0; }
-        .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
-        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 16px; font-weight: bold; }
+        .btn-close { background: transparent; border: none; color: var(--text-dim); font-size: 18px; padding: 0; border-radius: 50%; width: 24px; height: 24px; line-height: 24px; }
+        .btn-close:hover { background: #444; color: white; }
+
         .form-group { margin-bottom: 12px; }
-        .form-label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-        .form-control { 
-            width: 100%; background: var(--bg-input); color: white; border: 1px solid var(--border); 
-            padding: 10px; border-radius: var(--radius-btn); outline: none; font-size: 13px; transition: border 0.2s;
+        .modal-label { font-size: 11px; color: var(--text-dim); font-weight: 600; display: block; margin-bottom: 4px; text-transform: uppercase; }
+        .modal-input, .modal-select { 
+            background: var(--bg-input); color: white; border: 1px solid var(--border); 
+            padding: 10px; width: 100%; border-radius: var(--radius-sm); font-size: 13px; outline: none; transition: border 0.2s;
         }
-        .form-control:focus { border-color: var(--accent); }
-        
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .color-wrap { display: flex; gap: 8px; }
-        .color-wrap input[type="color"] { width: 38px; height: 38px; border: none; padding: 0; background: none; cursor: pointer; border-radius: var(--radius-btn); }
+        .modal-input:focus, .modal-select:focus { border-color: var(--accent); }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-        .btn-sync { background: #2ed573; color: black; padding: 12px; width: 100%; margin-bottom: 15px; font-weight: bold; border-radius: var(--radius-btn); box-shadow: 0 4px 10px rgba(46, 213, 115, 0.2); }
-        .btn-sync:hover { background: #26b963; }
+        .color-picker-wrap { display: flex; gap: 8px; align-items: center; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; }
+        .color-picker-wrap input[type="color"] { width: 24px; height: 24px; border: none; background: none; cursor: pointer; padding:0; }
+        .color-picker-wrap input[type="text"] { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 12px; }
 
-        /* ADS & FOOTER */
-        .ad-container { background: #111; height: 60px; display: flex; justify-content: center; align-items: center; color: #555; font-size: 10px; border-top: 1px solid var(--border); flex-shrink: 0; }
-        .footer { background: #151515; padding: 8px; font-size: 10px; color: #777; text-align: center; flex-shrink: 0; }
+        .btn-magic { 
+            background: linear-gradient(135deg, #7c3aed, #3b82f6); color: white; 
+            width: 100%; padding: 12px; margin-bottom: 15px; display: flex; justify-content: center; gap: 8px;
+            border-radius: var(--radius-md); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .btn-magic:hover { opacity: 0.9; }
+
+        /* ANUNCIOS Y FOOTER */
+        .ad-container { background: #111; min-height: 50px; display: flex; justify-content: center; align-items: center; color: #555; font-size: 10px; border-top: 1px solid var(--border); }
+        .footer { background: var(--bg-card); padding: 8px; text-align: center; font-size: 11px; color: var(--text-dim); border-top: 1px solid var(--border); }
     </style>
 </head>
 <body onkeydown="handleGlobalKeys(event)">
     <div class="top-nav">
-        <button class="btn-main" onclick="sendText()">+ Enviar Línea</button>
+        <button class="btn-primary" onclick="sendText()">+ Enviar y Siguiente</button>
         <div class="scale-section" title="Ajusta el tamaño global">
-            <span style="color:var(--text-muted); font-size: 11px;">Zoom:</span>
-            <input type="number" id="scaleInput" class="scale-input" value="100" oninput="saveData()">%
+            <span style="font-size:11px; color:#aaa;">Escala:</span>
+            <input type="number" id="scaleInput" class="scale-input" value="100" oninput="saveData()">
+            <span style="color:#aaa;">%</span>
         </div>
         <button class="btn-icon" onclick="openAddStyle()" title="Nuevo Estilo">➕</button>
         <button class="btn-icon" onclick="openModal('settingsModal')" title="Ajustes">⚙️</button>
     </div>
 
-    <textarea id="input" oninput="handleInput()" placeholder="Pega tu guion aquí... (Usa el botón ⚙️ para configurar ignorados)"></textarea>
+    <textarea id="input" oninput="handleInput()" placeholder="Pega el guion aquí..."></textarea>
     
     <div class="main-content">
         <div class="list-box" id="list"></div>
-        
-        <div class="style-grid-container">
-            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: bold;">ESTILOS RÁPIDOS</div>
-            <div class="style-grid" id="styleGrid"></div>
-        </div>
+        <div class="style-grid" id="styleGrid"></div>
     </div>
 
     <div class="ad-container" id="adSpace">
-        <!-- Espacio para Adsense -->
-        [ Espacio para Publicidad ]
+        <!-- PEGA AQUÍ TU CÓDIGO DE GOOGLE ADSENSE -->
+        Publicidad
     </div>
-    <div class="footer">TyperTools Pro | Estilo GNOME V7</div>
 
     <!-- MODAL DE ESTILOS -->
     <div id="styleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="styleModalTitle">Ajustes de Estilo</h3>
-                <button class="btn-icon" style="padding: 5px; min-width: auto; background:none;" onclick="closeModal('styleModal')">✕</button>
+                <span id="styleModalTitle">Ajustes de Estilo</span>
+                <button class="btn-close" onclick="closeModal('styleModal')">✕</button>
             </div>
-            <div class="modal-body">
-                
-                <!-- EL BOTÓN MÁGICO QUE SOLUCIONA TU PROBLEMA -->
-                <button class="btn-sync" onclick="syncFromPhotopea()">
-                    ✨ Extraer estilo de capa seleccionada en Photopea
-                </button>
+            
+            <button class="btn-magic" onclick="fetchStyleFromPhotopea()" title="Lee la fuente, color y tamaño de la capa seleccionada">
+                ✨ Absorber estilo de la capa actual
+            </button>
 
-                <input type="hidden" id="editStyleId">
-                
-                <div class="form-group">
-                    <span class="form-label">Nombre del Estilo</span>
-                    <input type="text" id="sName" class="form-control" placeholder="Ej: Grito, Pensamiento, Normal">
-                </div>
+            <input type="hidden" id="editStyleId">
+            
+            <div class="form-group">
+                <span class="modal-label">Nombre del Estilo</span>
+                <input type="text" id="sName" class="modal-input" placeholder="Ej: Narrativa, Grito, SFX">
+            </div>
+            
+            <div class="form-group">
+                <span class="modal-label">Nombre Interno de la Fuente</span>
+                <input type="text" id="sFont" class="modal-input" placeholder="Ej: ArialMT (Usa el botón mágico arriba)">
+            </div>
 
+            <div class="modal-grid">
                 <div class="form-group">
-                    <span class="form-label">Fuente (Nombre Interno)</span>
-                    <input type="text" id="sFont" class="form-control" placeholder="Usa el botón de arriba para rellenar automáticamente">
+                    <span class="modal-label">Tamaño (px)</span>
+                    <input type="number" id="sSize" class="modal-input" value="50">
                 </div>
-                
-                <div class="grid-2">
-                    <div class="form-group">
-                        <span class="form-label">Tamaño (px)</span>
-                        <input type="number" id="sSize" class="form-control" value="50">
-                    </div>
-                    <div class="form-group">
-                        <span class="form-label">Color de Texto</span>
-                        <div class="color-wrap">
-                            <input type="color" id="sColor" value="#ffffff">
-                            <input type="text" id="sColorText" class="form-control" value="#ffffff">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <span class="form-label">Alineación</span>
-                        <select id="sAlign" class="form-control">
-                            <option value="CENTER">Centro</option>
-                            <option value="LEFT">Izquierda</option>
-                            <option value="RIGHT">Derecha</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <span class="form-label">Interlineado (%)</span>
-                        <input type="number" id="sLeading" class="form-control" value="120">
-                    </div>
-                    <div class="form-group">
-                        <span class="form-label">Borde / Trazo (px)</span>
-                        <input type="number" id="sStrokeSize" class="form-control" value="0" min="0">
-                    </div>
-                    <div class="form-group">
-                        <span class="form-label">Color del Borde</span>
-                        <div class="color-wrap">
-                            <input type="color" id="sStrokeColor" value="#000000">
-                            <input type="text" id="sStrokeColorText" class="form-control" value="#000000">
-                        </div>
+                <div class="form-group">
+                    <span class="modal-label">Color Principal</span>
+                    <div class="color-picker-wrap">
+                        <input type="color" id="sColor" value="#000000" oninput="document.getElementById('sColorText').value = this.value">
+                        <input type="text" id="sColorText" value="#000000" oninput="document.getElementById('sColor').value = this.value">
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <span class="form-label">Prefijos Automáticos (Separados por coma)</span>
-                    <input type="text" id="sPrefix" class="form-control" placeholder='Ej: "", (), Grito:'>
+                    <span class="modal-label">Borde (0 = Sin)</span>
+                    <input type="number" id="sStrokeSize" class="modal-input" value="0">
                 </div>
-
                 <div class="form-group">
-                    <span class="form-label">Letras</span>
-                    <select id="sCase" class="form-control">
-                        <option value="none">Normal (Como se escribió)</option>
-                        <option value="uppercase">Forzar TODO MAYÚSCULAS</option>
+                    <span class="modal-label">Color Borde</span>
+                    <div class="color-picker-wrap">
+                        <input type="color" id="sStrokeColor" value="#FFFFFF" oninput="document.getElementById('sStrokeColorText').value = this.value">
+                        <input type="text" id="sStrokeColorText" value="#FFFFFF" oninput="document.getElementById('sStrokeColor').value = this.value">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <span class="modal-label">Alineación</span>
+                    <select id="sAlign" class="modal-select">
+                        <option value="CENTER">Centro</option>
+                        <option value="LEFT">Izquierda</option>
+                        <option value="RIGHT">Derecha</option>
                     </select>
                 </div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="btn-main" onclick="saveStyle()">Guardar Estilo</button>
-                    <button class="btn-danger" style="margin: 0; width: auto;" id="btnDelStyle" onclick="deleteStyle()">Eliminar</button>
+                <div class="form-group">
+                    <span class="modal-label">Interlineado (%)</span>
+                    <input type="number" id="sLeading" class="modal-input" value="120">
                 </div>
             </div>
+
+            <div class="form-group">
+                <span class="modal-label">Forzar Letra / Estilos</span>
+                <div style="display:flex; gap:8px;">
+                    <select id="sCase" class="modal-select">
+                        <option value="none">Normal</option>
+                        <option value="uppercase">TODO MAYÚSCULAS</option>
+                    </select>
+                    <select id="sWeight" class="modal-select">
+                        <option value="Regular">Normal</option>
+                        <option value="Bold">Falsa Negrita</option>
+                        <option value="Italic">Falsa Cursiva</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="modal-label">Corte de línea automático (Punto) - 0 Apagado</span>
+                <input type="number" id="sWrap" class="modal-input" value="25" min="0">
+            </div>
+
+            <div class="form-group">
+                <span class="modal-label">Prefijos Automáticos (Separados por coma)</span>
+                <input type="text" id="sPrefix" class="modal-input" placeholder='Ej: "", (), Grito:'>
+            </div>
+            
+            <button class="btn-primary" style="width:100%; padding:12px; margin-top:10px;" onclick="saveStyle()">Guardar Estilo</button>
+            <button class="btn-danger" id="btnDelStyle" style="display:none;" onclick="deleteStyle()">Eliminar Estilo</button>
         </div>
     </div>
 
@@ -234,102 +250,59 @@
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Ajustes Generales</h3>
-                <button class="btn-icon" style="padding: 5px; min-width: auto; background:none;" onclick="closeModal('settingsModal')">✕</button>
+                <span>Ajustes Globales</span>
+                <button class="btn-close" onclick="closeModal('settingsModal')">✕</button>
             </div>
-            <div class="modal-body">
-                <div style="display:flex; gap:10px; margin-bottom:20px;">
-                    <button class="btn-icon" style="flex:1; background:var(--bg-input); border:1px solid var(--border);" onclick="exportJSON()">⬇️ Exportar Datos</button>
-                    <button class="btn-icon" style="flex:1; background:var(--bg-input); border:1px solid var(--border);" onclick="document.getElementById('importFile').click()">⬆️ Importar Datos</button>
-                </div>
-                <input type="file" id="importFile" style="display:none" onchange="importJSON(event)">
-                
-                <div class="form-group">
-                    <span class="form-label">Ignorar Líneas que empiecen por:</span>
-                    <textarea id="ignoreTags" class="form-control" style="height:120px;" oninput="saveSettings()"></textarea>
-                </div>
-                
-                <button class="btn-danger" onclick="if(confirm('¿Borrar TODO?')){localStorage.clear(); location.reload();}">Resetear Todo el Plugin</button>
+            <div style="display:flex; gap:8px; margin-bottom:15px;">
+                <button class="btn-primary" onclick="exportJSON()">Exportar Datos</button>
+                <button class="btn-icon" style="flex:1;" onclick="document.getElementById('importFile').click()">Importar Datos</button>
             </div>
+            <input type="file" id="importFile" style="display:none" onchange="importJSON(event)">
+            
+            <div class="form-group">
+                <span class="modal-label">Etiquetas a Ignorar (No se mostrarán en la lista)</span>
+                <textarea id="ignoreTags" class="modal-input" style="height:100px; resize:none;" oninput="saveSettings()"></textarea>
+            </div>
+            <button class="btn-danger" onclick="if(confirm('¿Borrar TODO?')){localStorage.clear(); location.reload();}">Resetear de Fábrica</button>
         </div>
     </div>
 
+    <div class="footer">TyperTools Pro | Interfaz GNOME | v7.0</div>
+
     <script>
         let selectedIndex = -1, activeStyleId = null, filteredLines = [], styles = [];
-        const DEFAULT_TAGS = "SFX:\nSfx:\n##\nPage\n---\n===\nP1\nP2\nPg.\n=0";
+        const DEFAULT_TAGS = "SFX:\nSfx:\nsfx:\nSFX\nSfx\nsfx\n##\nHalaman\nPage\n---\npage\n===\nP1\nP2\n[1]\nPg.\nPAGE\n=0\n--";
 
-        // VINCULAR INPUTS DE COLORES
-        document.getElementById('sColor').addEventListener('input', function() { document.getElementById('sColorText').value = this.value; });
-        document.getElementById('sColorText').addEventListener('input', function() { document.getElementById('sColor').value = this.value; });
-        document.getElementById('sStrokeColor').addEventListener('input', function() { document.getElementById('sStrokeColorText').value = this.value; });
-        document.getElementById('sStrokeColorText').addEventListener('input', function() { document.getElementById('sStrokeColor').value = this.value; });
-
-        // RECIBIR MENSAJES DE PHOTOPEA (EL BOTÓN MÁGICO)
+        // GESTIÓN DE MENSAJES DESDE PHOTOPEA (EL BOTÓN MÁGICO)
         window.addEventListener("message", function(e) {
             if (e.data instanceof ArrayBuffer) {
-                var decoder = new TextDecoder("utf-8");
-                var msg = decoder.decode(e.data);
-                
-                if (msg.startsWith("SYNC_STYLE:")) {
-                    var parts = msg.replace("SYNC_STYLE:", "").split("|");
-                    // parts = [FontName, Size, HexColor, Alignment, Leading]
-                    document.getElementById('sFont').value = parts[0];
-                    document.getElementById('sSize').value = Math.round(parseFloat(parts[1]));
-                    
-                    var hex = "#" + parts[2];
-                    document.getElementById('sColor').value = hex;
-                    document.getElementById('sColorText').value = hex;
-                    
-                    document.getElementById('sAlign').value = parts[3];
-                    
-                    if(!isNaN(parts[4])) {
-                        document.getElementById('sLeading').value = Math.round(parseFloat(parts[4]));
+                var msg = new TextDecoder("utf-8").decode(e.data);
+                if (msg.startsWith("FETCH_STYLE:")) {
+                    var parts = msg.substring(12).split("|"); // Font|Size|Color|Align
+                    if (parts.length >= 4) {
+                        document.getElementById('sFont').value = parts[0];
+                        document.getElementById('sSize').value = Math.round(parseFloat(parts[1]));
+                        document.getElementById('sColor').value = parts[2];
+                        document.getElementById('sColorText').value = parts[2];
+                        document.getElementById('sAlign').value = parts[3].toUpperCase();
+                        alert("¡Estilo absorbido con éxito!");
                     }
-                    
-                    alert("¡Estilo copiado con éxito! (Nota: El color de borde debes ponerlo manualmente).");
-                } 
-                else if (msg.startsWith("SYNC_ERR:")) {
-                    alert("Error: Por favor, en Photopea selecciona una capa de texto que ya hayas editado.");
+                } else if (msg.startsWith("FETCH_ERROR:")) {
+                    alert(msg.substring(12));
                 }
             }
         });
 
-        // FUNCIÓN PARA PEDIRLE A PHOTOPEA LOS DATOS DE LA CAPA ACTUAL
-        function syncFromPhotopea() {
-            const script = `
-                try {
-                    var doc = app.activeDocument;
-                    var layer = doc.activeLayer;
-                    if(layer.kind !== LayerKind.TEXT) throw "No es una capa de texto";
-                    
-                    var t = layer.textItem;
-                    var font = t.font;
-                    var size = t.size;
-                    
-                    var color = "ffffff";
-                    try { color = t.color.rgb.hexValue; } catch(e){}
-                    
-                    var align = "CENTER";
-                    if(t.justification == Justification.LEFT) align = "LEFT";
-                    if(t.justification == Justification.RIGHT) align = "RIGHT";
-                    
-                    var leading = 120;
-                    try {
-                        if(!t.useAutoLeading) leading = (t.leading / size) * 100;
-                    } catch(e){}
-                    
-                    app.echoToOE("SYNC_STYLE:" + font + "|" + size + "|" + color + "|" + align + "|" + leading);
-                } catch(e) {
-                    app.echoToOE("SYNC_ERR:" + e.toString());
-                }
-            `;
-            window.parent.postMessage(script, "*");
-        }
-
         // FUNCIONES DE UI
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function handleGlobalKeys(e) { if (e.ctrlKey && (e.metaKey || e.key === "Enter" || e.code === "Enter")) { e.preventDefault(); sendText(); } }
+        
+        function handleGlobalKeys(e) {
+            if (e.ctrlKey && (e.metaKey || e.key === "Enter" || e.code === "Enter")) {
+                e.preventDefault(); sendText();
+            }
+        }
+
         function handleInput() { saveData(); renderLines(); }
 
         function saveData() {
@@ -354,20 +327,22 @@
         }
 
         function openAddStyle() {
-            document.getElementById('styleModalTitle').innerText = "Crear Nuevo Estilo";
+            document.getElementById('styleModalTitle').innerText = "Nuevo Estilo";
             document.getElementById('editStyleId').value = "";
             document.getElementById('sName').value = "";
-            document.getElementById('sFont').value = "";
-            document.getElementById('sSize').value = 50;
-            document.getElementById('sColor').value = "#ffffff";
-            document.getElementById('sColorText').value = "#ffffff";
-            document.getElementById('sAlign').value = "CENTER";
-            document.getElementById('sLeading').value = 120;
-            document.getElementById('sStrokeSize').value = 0;
-            document.getElementById('sStrokeColor').value = "#000000";
-            document.getElementById('sStrokeColorText').value = "#000000";
-            document.getElementById('sPrefix').value = "";
+            document.getElementById('sFont').value = "ArialMT";
+            document.getElementById('sWeight').value = "Regular";
             document.getElementById('sCase').value = "none";
+            document.getElementById('sLeading').value = 120;
+            document.getElementById('sSize').value = 50;
+            document.getElementById('sColor').value = "#000000";
+            document.getElementById('sColorText').value = "#000000";
+            document.getElementById('sStrokeSize').value = 0;
+            document.getElementById('sStrokeColor').value = "#FFFFFF";
+            document.getElementById('sStrokeColorText').value = "#FFFFFF";
+            document.getElementById('sAlign').value = "CENTER";
+            document.getElementById('sWrap').value = 25;
+            document.getElementById('sPrefix').value = "";
             document.getElementById('btnDelStyle').style.display = "none";
             openModal('styleModal');
         }
@@ -378,17 +353,19 @@
             document.getElementById('styleModalTitle').innerText = "Editar Estilo";
             document.getElementById('editStyleId').value = s.id;
             document.getElementById('sName').value = s.name;
-            document.getElementById('sFont').value = s.font;
-            document.getElementById('sSize').value = s.size;
-            document.getElementById('sColor').value = s.color || "#ffffff";
-            document.getElementById('sColorText').value = s.color || "#ffffff";
-            document.getElementById('sAlign').value = s.align || "CENTER";
-            document.getElementById('sLeading').value = s.leading || 120;
-            document.getElementById('sStrokeSize').value = s.strokeSize || 0;
-            document.getElementById('sStrokeColor').value = s.strokeColor || "#000000";
-            document.getElementById('sStrokeColorText').value = s.strokeColor || "#000000";
-            document.getElementById('sPrefix').value = (s.prefixes || []).join(", ");
+            document.getElementById('sFont').value = s.font || "ArialMT";
+            document.getElementById('sWeight').value = s.weight || "Regular";
             document.getElementById('sCase').value = s.case || "none";
+            document.getElementById('sLeading').value = s.leading || 120;
+            document.getElementById('sSize').value = s.size;
+            document.getElementById('sColor').value = s.color || "#000000";
+            document.getElementById('sColorText').value = s.color || "#000000";
+            document.getElementById('sStrokeSize').value = s.strokeSize || 0;
+            document.getElementById('sStrokeColor').value = s.strokeColor || "#FFFFFF";
+            document.getElementById('sStrokeColorText').value = s.strokeColor || "#FFFFFF";
+            document.getElementById('sAlign').value = s.align || "CENTER";
+            document.getElementById('sWrap').value = s.wrap !== undefined ? s.wrap : 25;
+            document.getElementById('sPrefix').value = (s.prefixes || []).join(", ");
             document.getElementById('btnDelStyle').style.display = "block";
             openModal('styleModal');
         }
@@ -397,15 +374,17 @@
             const id = document.getElementById('editStyleId').value;
             const newStyle = {
                 id: id || Date.now().toString(),
-                name: document.getElementById('sName').value || "Estilo",
+                name: document.getElementById('sName').value || "Sin Nombre",
                 font: document.getElementById('sFont').value || "ArialMT",
-                size: parseInt(document.getElementById('sSize').value) || 50,
-                color: document.getElementById('sColorText').value || "#ffffff",
-                align: document.getElementById('sAlign').value || "CENTER",
-                leading: parseFloat(document.getElementById('sLeading').value) || 120,
-                strokeSize: parseInt(document.getElementById('sStrokeSize').value) || 0,
-                strokeColor: document.getElementById('sStrokeColorText').value || "#000000",
+                weight: document.getElementById('sWeight').value,
                 case: document.getElementById('sCase').value,
+                leading: parseFloat(document.getElementById('sLeading').value) || 120,
+                size: parseInt(document.getElementById('sSize').value) || 50,
+                color: document.getElementById('sColorText').value || "#000000",
+                strokeSize: parseInt(document.getElementById('sStrokeSize').value) || 0,
+                strokeColor: document.getElementById('sStrokeColorText').value || "#FFFFFF",
+                align: document.getElementById('sAlign').value || "CENTER",
+                wrap: parseInt(document.getElementById('sWrap').value) || 0,
                 prefixes: document.getElementById('sPrefix').value.split(",").map(x => x.trim()).filter(x => x !== "")
             };
             if(id) {
@@ -440,7 +419,7 @@
                 const row = document.createElement('div');
                 row.className = `row ${selectedIndex === idx ? 'active' : ''}`;
                 row.id = 'row-' + idx;
-                row.innerHTML = `<span class="row-num">${idx + 1}</span><span style="flex:1; font-size:12px;">${detectedPrefix ? `<span class="tag-pill">${detectedPrefix}</span>` : ""}${line.trim().replace(detectedPrefix, "").trim()}</span>`;
+                row.innerHTML = `<span style="width:24px; color:var(--text-dim); font-weight:bold;">${idx + 1}</span><span style="flex:1;">${detectedPrefix ? `<span class="tag-pill">${detectedPrefix}</span>` : ""}${line.trim().replace(detectedPrefix, "").trim()}</span>`;
                 row.onclick = () => selectRow(idx);
                 list.appendChild(row);
             });
@@ -456,73 +435,153 @@
             saveData();
         }
 
+        function wordWrap(str, maxWidth) {
+            if (maxWidth <= 0) return str;
+            let res = '', line = '';
+            const words = str.split(' ');
+            for (let i = 0; i < words.length; i++) {
+                if (line.length + words[i].length + 1 <= maxWidth || line === '') {
+                    line += (line === '' ? '' : ' ') + words[i];
+                } else {
+                    res += line + '\n'; line = words[i];
+                }
+            }
+            return res + line;
+        }
+
+        // FUNCIONES AL NÚCLEO DE PHOTOPEA (EXTENDSCRIPT)
+        
+        function fetchStyleFromPhotopea() {
+            const script = `
+                try {
+                    var layer = app.activeDocument.activeLayer;
+                    if (layer.kind === LayerKind.TEXT) {
+                        var ti = layer.textItem;
+                        var colorHex = "#000000";
+                        try { colorHex = "#" + ti.color.rgb.hexValue; } catch(e){}
+                        var align = "CENTER";
+                        try { align = ti.justification.toString().replace("Justification.", ""); } catch(e){}
+                        app.echoToOE("FETCH_STYLE:" + ti.font + "|" + ti.size + "|" + colorHex + "|" + align);
+                    } else {
+                        app.echoToOE("FETCH_ERROR:La capa seleccionada no es de texto.");
+                    }
+                } catch(err) {
+                    app.echoToOE("FETCH_ERROR:Asegúrate de tener un documento abierto y una capa de texto seleccionada.");
+                }
+            `;
+            window.parent.postMessage(script, "*");
+        }
+
         function sendText() {
             if(selectedIndex === -1 || !filteredLines[selectedIndex]) return;
             const scale = (parseFloat(document.getElementById('scaleInput').value) || 100) / 100;
-            const style = styles.find(s => s.id == activeStyleId) || { font: "ArialMT", size: 50, color: "#ffffff", align: "CENTER", strokeSize: 0, leading:120 };
+            const style = styles.find(s => s.id == activeStyleId) || { font: "ArialMT", size: 50, color: "#000000", align: "CENTER" };
             
             let raw = filteredLines[selectedIndex].trim();
             let prefix = (style.prefixes || []).find(p => raw.startsWith(p)) || "";
             let text = raw.replace(prefix, "").trim();
-
             if (style.case === "uppercase") text = text.toUpperCase();
             
-            function escapeStr(str) { return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/'/g, "\\'").replace(/\r?\n/g, '\\r'); }
-            const safeText = escapeStr(text);
+            let pointTextContent = wordWrap(text, style.wrap || 0);
 
-            // CÓDIGO EXTENDSCRIPT CORREGIDO PARA TRAZO
+            // Escapar texto para el script
+            function safeStr(str) { return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r?\n/g, '\\r'); }
+            
+            // EL SCRIPT REESCRITO QUE ARREGLA EL MARCO DE SELECCIÓN Y EL BORDE
             const ppea = `
                 var doc = app.activeDocument;
+                var isBox = false;
+                var x = 0, y = 0, w = 0, h = 0;
+                
+                // 1. COMPROBAR SELECCIÓN DE FORMA SEGURA
+                try { 
+                    var bounds = doc.selection.bounds;
+                    x = bounds[0].value;
+                    y = bounds[1].value;
+                    w = bounds[2].value - x;
+                    h = bounds[3].value - y;
+                    if (w > 10 && h > 10) { isBox = true; doc.selection.deselect(); }
+                } catch(e) { }
+
+                // 2. CREAR CAPA
                 var layer = doc.artLayers.add();
                 layer.kind = LayerKind.TEXT;
                 var ti = layer.textItem;
 
-                ti.kind = TextType.POINTTEXT;
-                ti.position = [doc.width / 2, doc.height / 2];
-                ti.contents = "${safeText}";
+                if (isBox) {
+                    ti.kind = TextType.PARAGRAPHTEXT;
+                    ti.position = [x, y];
+                    ti.width = w;
+                    ti.height = h;
+                    ti.contents = "${safeStr(text)}";
+                } else {
+                    ti.kind = TextType.POINTTEXT;
+                    ti.position = [doc.width / 2, doc.height / 2];
+                    ti.contents = "${safeStr(pointTextContent)}";
+                }
                 
-                try { ti.font = "${style.font}"; } catch(e) {}
+                // 3. APLICAR ESTILOS
+                try { ti.font = "${style.font || 'ArialMT'}"; } catch(e) {}
                 ti.size = ${style.size * scale};
                 ti.justification = Justification.${style.align || "CENTER"};
 
-                var textColor = new SolidColor();
-                textColor.rgb.hexValue = "${style.color || '#ffffff'}".replace('#', '');
-                ti.color = textColor;
+                var tc = new SolidColor();
+                tc.rgb.hexValue = "${style.color || '#000000'}".replace('#', '');
+                ti.color = tc;
 
                 try { 
                     ti.useAutoLeading = false; 
                     ti.leading = ${style.size * ((style.leading || 120) / 100) * scale}; 
                 } catch(e) {}
 
-                var strokeSize = ${ (style.strokeSize || 0) * scale };
-                if (strokeSize > 0) {
+                var wStyle = "${style.weight || 'Regular'}";
+                if(wStyle === "Bold") { try { ti.fauxBold = true; } catch(e) {} }
+                if(wStyle === "Italic") { try { ti.fauxItalic = true; } catch(e) {} }
+
+                // 4. FIX DEL BORDE (STROKE) ADOBE STANDARD
+                var strokeSz = ${ (style.strokeSize || 0) * scale };
+                if (strokeSz > 0) {
                     try {
-                        var d = new ActionDescriptor();
-                        var r = new ActionReference();
-                        r.putProperty(stringIDToTypeID("property"), stringIDToTypeID("layerEffects"));
-                        r.putEnumerated(stringIDToTypeID("layer"), stringIDToTypeID("ordinal"), stringIDToTypeID("targetEnum"));
-                        d.putReference(stringIDToTypeID("null"), r);
+                        var idsetd = charIDToTypeID( "setd" );
+                        var desc1 = new ActionDescriptor();
+                        var idnull = charIDToTypeID( "null" );
+                        var ref1 = new ActionReference();
+                        var idPrpr = charIDToTypeID( "Prpr" );
+                        var idLefx = charIDToTypeID( "Lefx" );
+                        ref1.putProperty( idPrpr, idLefx );
+                        var idLyr = charIDToTypeID( "Lyr " );
+                        var idOrdn = charIDToTypeID( "Ordn" );
+                        var idTrgt = charIDToTypeID( "Trgt" );
+                        ref1.putEnumerated( idLyr, idOrdn, idTrgt );
+                        desc1.putReference( idnull, ref1 );
                         
-                        var d2 = new ActionDescriptor();
-                        var d3 = new ActionDescriptor();
-                        d3.putBoolean(stringIDToTypeID("enabled"), true);
-                        d3.putEnumerated(stringIDToTypeID("style"), stringIDToTypeID("frameStyle"), stringIDToTypeID("outsetFrame"));
-                        d3.putEnumerated(stringIDToTypeID("paintType"), stringIDToTypeID("frameFill"), stringIDToTypeID("solidColor"));
-                        d3.putEnumerated(stringIDToTypeID("mode"), stringIDToTypeID("blendMode"), stringIDToTypeID("normal"));
-                        d3.putUnitDouble(stringIDToTypeID("opacity"), stringIDToTypeID("percentUnit"), 100);
-                        d3.putUnitDouble(stringIDToTypeID("size"), stringIDToTypeID("pixelsUnit"), strokeSize);
+                        var idT = charIDToTypeID( "T   " );
+                        var desc2 = new ActionDescriptor();
+                        var idFrFX = charIDToTypeID( "FrFX" );
+                        var desc3 = new ActionDescriptor();
+                        var idenab = charIDToTypeID( "enab" );
+                        desc3.putBoolean( idenab, true );
                         
-                        var c = new ActionDescriptor();
-                        var sHex = "${style.strokeColor || '#000000'}".replace('#', '');
-                        c.putDouble(stringIDToTypeID("red"), parseInt(sHex.substr(0,2), 16));
-                        c.putDouble(stringIDToTypeID("green"), parseInt(sHex.substr(2,2), 16));
-                        c.putDouble(stringIDToTypeID("blue"), parseInt(sHex.substr(4,2), 16));
+                        var idStyl = charIDToTypeID( "Styl" );
+                        var idFStl = charIDToTypeID( "FStl" );
+                        var idOutF = charIDToTypeID( "OutF" );
+                        desc3.putEnumerated( idStyl, idFStl, idOutF );
                         
-                        d3.putObject(stringIDToTypeID("color"), stringIDToTypeID("RGBColor"), c);
-                        d2.putObject(stringIDToTypeID("frameFX"), stringIDToTypeID("frameFX"), d3);
-                        d.putObject(stringIDToTypeID("to"), stringIDToTypeID("layerEffects"), d2);
+                        var idSz = charIDToTypeID( "Sz  " );
+                        var idPx = charIDToTypeID( "#Pxl" );
+                        desc3.putUnitDouble( idSz, idPx, strokeSz );
                         
-                        executeAction(stringIDToTypeID("set"), d, DialogModes.NO);
+                        var idClr = charIDToTypeID( "Clr " );
+                        var desc4 = new ActionDescriptor();
+                        var sHex = "${style.strokeColor || '#FFFFFF'}".replace('#', '');
+                        desc4.putDouble( charIDToTypeID( "Rd  " ), parseInt(sHex.substr(0,2), 16) );
+                        desc4.putDouble( charIDToTypeID( "Grn " ), parseInt(sHex.substr(2,2), 16) );
+                        desc4.putDouble( charIDToTypeID( "Bl  " ), parseInt(sHex.substr(4,2), 16) );
+                        desc3.putObject( idClr, charIDToTypeID( "RGBC" ), desc4 );
+                        
+                        desc2.putObject( idFrFX, idFrFX, desc3 );
+                        desc1.putObject( idT, idLefx, desc2 );
+                        executeAction( idsetd, desc1, DialogModes.NO );
                     } catch(err) {}
                 }
             `;
@@ -530,10 +589,12 @@
             setTimeout(() => selectRow(selectedIndex + 1), 50); 
         }
 
+        // IMPORT / EXPORT DATA
         function exportJSON() {
             const data = { styles, ignoreLinePrefixes: document.getElementById('ignoreTags').value.split('\n') };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'typer_styles_v7.json'; a.click();
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = 'typer_styles_v7.json'; a.click();
         }
 
         function importJSON(e) {
@@ -541,10 +602,12 @@
             reader.onload = (event) => {
                 try {
                     const data = JSON.parse(event.target.result);
-                    if (data.styles) styles = data.styles;
+                    if (data.styles) { styles = data.styles; }
                     if (data.ignoreLinePrefixes) document.getElementById('ignoreTags').value = data.ignoreLinePrefixes.join("\n");
-                    saveData(); renderStyleGrid(); renderLines(); closeModal('settingsModal'); alert("¡Importación Exitosa!");
-                } catch(err) { alert("¡Error al importar!"); }
+                    saveData(); renderStyleGrid(); renderLines(); 
+                    alert("Datos importados.");
+                    closeModal('settingsModal');
+                } catch(err) { alert("Error de archivo."); }
             };
             reader.readAsText(e.target.files[0]);
         }
