@@ -22,49 +22,58 @@
             --danger: #e01b24;
         }
         
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { height: 100%; }
+
         body { 
             background: var(--window-bg); color: var(--text-main); 
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; 
+            font-family: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif; 
             padding: 0; margin: 0; font-size: 13px; user-select: none; 
             display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
         }
+        input, textarea, select { user-select: text; }
         
-        /* HEADERBAR (Top Nav) */
+        /* HEADERBAR */
         .headerbar { 
             display: flex; gap: 8px; padding: 10px 12px; 
             background: var(--header-bg); border-bottom: 1px solid var(--border-color); 
-            align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); z-index: 10;
+            align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); z-index: 10; flex-shrink: 0;
         }
         
         button { 
             background: var(--input-bg); color: var(--text-main); 
             border: 1px solid var(--border-color); padding: 8px 12px; 
             cursor: pointer; font-weight: 500; border-radius: var(--border-radius-sm); 
-            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s ease, border-color 0.15s ease; display: flex; align-items: center; justify-content: center;
+            white-space: nowrap; flex-shrink: 0;
         }
         button:hover { background: #353535; }
+        button:active { background: #3f3f3f; }
+
+        .btn-icon { width: 34px; height: 34px; padding: 0; font-size: 15px; flex: none; }
         
         .btn-primary { background: var(--accent-bg); border-color: transparent; font-weight: 600; }
         .btn-primary:hover { background: var(--accent-hover); }
         .btn-danger { background: var(--danger); border-color: transparent; }
         
-        .scale-section { display: flex; align-items: center; background: var(--input-bg); border-radius: var(--border-radius-sm); padding: 0 8px; border: 1px solid var(--border-color); }
+        .scale-section { display: flex; align-items: center; background: var(--input-bg); border-radius: var(--border-radius-sm); padding: 0 8px; border: 1px solid var(--border-color); flex: none; height: 34px; }
         .scale-section span { color: var(--text-muted); font-size: 12px; }
-        .scale-input { background: transparent; border: none; color: white; width: 35px; text-align: center; font-weight: bold; outline: none; padding: 8px 0; }
+        .scale-input { background: transparent; border: none; color: white; width: 38px; text-align: center; font-weight: bold; outline: none; padding: 0; }
+        .scale-input::-webkit-outer-spin-button, .scale-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
         /* INPUT AREA */
         textarea#input { 
             width: 100%; height: 90px; background: var(--window-bg); color: var(--text-main); 
             border: none; border-bottom: 1px solid var(--border-color); padding: 12px; 
             box-sizing: border-box; resize: none; font-family: 'Fira Code', 'Consolas', monospace; 
-            outline: none; font-size: 13px; line-height: 1.4;
+            outline: none; font-size: 13px; line-height: 1.4; flex-shrink: 0;
         }
         textarea#input:focus { border-bottom: 2px solid var(--accent-bg); }
         
         /* MAIN LAYOUT */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; gap: 10px; padding: 10px; }
         
-        /* LIST BOX (Líneas del guion) */
+        /* LIST BOX */
         .list-card { flex: 1.5; overflow-y: auto; background: var(--card-bg); border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); display: flex; flex-direction: column; }
         .row { display: flex; align-items: center; padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); transition: background 0.1s; }
         .row:last-child { border-bottom: none; }
@@ -85,27 +94,32 @@
         .style-item:hover { border-color: var(--text-muted); }
         .style-item.active { background: rgba(53, 132, 228, 0.2); border-color: var(--accent-bg); box-shadow: 0 0 0 1px var(--accent-bg); }
         .style-name { flex: 1; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .edit-icon { color: var(--text-muted); padding: 4px; border-radius: 4px; }
+        .edit-icon { color: var(--text-muted); padding: 4px; border-radius: 4px; flex: none; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
         .edit-icon:hover { background: var(--header-bg); color: var(--text-main); }
 
-        /* MODALS */
+        /* MODALS (Fix aplicado aquí) */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 200; align-items: center; justify-content: center; }
-        .modal-content { background: var(--window-bg); width: 90%; max-width: 450px; max-height: 90vh; border-radius: var(--border-radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; border: 1px solid var(--border-color); }
+        .modal-content { background: var(--window-bg); width: 90%; max-width: 450px; max-height: 90vh; border-radius: var(--border-radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; overflow-x: hidden; border: 1px solid var(--border-color); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: var(--header-bg); position: sticky; top: 0; z-index: 5; }
         .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
         
         .modal-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: -6px; display: block; }
         .modal-input, .modal-select { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: var(--border-radius-md); font-size: 13px; outline: none; width: 100%; box-sizing: border-box; transition: border 0.2s; }
         .modal-input:focus, .modal-select:focus { border-color: var(--accent-bg); }
-        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        /* FIX: minmax evita que las columnas se estiren y se desborden del modal */
+        .modal-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 
         .color-picker-wrap { display: flex; gap: 8px; align-items: center; background: var(--input-bg); padding: 4px 8px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color); }
-        .color-picker-wrap input[type="color"] { width: 24px; height: 24px; border: none; padding: 0; background: none; cursor: pointer; border-radius: 4px; }
-        .color-picker-wrap input[type="text"] { border: none; background: transparent; padding: 0; width: 100%; }
+        .color-picker-wrap input[type="color"] { width: 24px; height: 24px; border: none; padding: 0; background: none; cursor: pointer; border-radius: 4px; flex-shrink: 0; }
+        /* FIX: flex 1 y min-width 0 previenen que el input reviente el grid */
+        .color-picker-wrap input[type="text"] { border: none; background: transparent; padding: 0; flex: 1; min-width: 0; outline: none; color: var(--text-main); font-family: inherit;}
 
         /* ADS & FOOTER */
-        .ad-container { background: #111; min-height: 50px; display: flex; justify-content: center; align-items: center; color: var(--text-muted); font-size: 11px; }
-        .footer { background: var(--header-bg); padding: 6px; font-size: 11px; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); }
+        .ad-container { background: #111; min-height: 50px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; color: var(--text-muted); font-size: 11px; }
+        .footer { background: var(--header-bg); padding: 6px; font-size: 11px; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); flex-shrink: 0; }
+
+        #statusBar { flex-shrink: 0; }
         
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--window-bg); }
@@ -114,19 +128,20 @@
     </style>
 </head>
 <body onkeydown="handleGlobalKeys(event)">
+    <!-- El resto del HTML/JS original (Intacto) -->
     <div class="headerbar">
-        <button class="btn-primary" onclick="sendText()" style="flex:1;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <button class="btn-primary" onclick="sendText()" style="flex:1; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             Enviar y Siguiente
         </button>
         <div class="scale-section" title="Ajusta el tamaño global">
             <span>Escala:</span>
-            <input type="number" id="scaleInput" class="scale-input" value="100" oninput="saveData()">
+            <input type="number" id="scaleInput" class="scale-input" value="100" oninput="scheduleSave()">
             <span>%</span>
         </div>
-        <button onclick="requestStyleFromLayer()" title="Copiar estilo de la capa de texto activa en Photopea">🎨</button>
-        <button onclick="openAddStyle()" title="Nuevo Estilo">➕</button>
-        <button onclick="toggleModal('settingsModal')" title="Ajustes">⚙️</button>
+        <button class="btn-icon" onclick="requestStyleFromLayer()" title="Copiar estilo de la capa de texto activa en Photopea">🎨</button>
+        <button class="btn-icon" onclick="openAddStyle()" title="Nuevo Estilo">➕</button>
+        <button class="btn-icon" onclick="toggleModal('settingsModal')" title="Ajustes">⚙️</button>
     </div>
     <div id="statusBar" style="padding:4px 12px; font-size:11px; color:var(--text-muted); background:var(--header-bg); border-bottom:1px solid var(--border-color); min-height:14px; max-height:48px; overflow-y:auto; line-height:1.4;">Listo.</div>
 
@@ -250,7 +265,7 @@
                 <div style="display:flex; gap:8px;">
                     <button onclick="exportJSON()" style="flex:1;">Exportar JSON</button>
                     <button onclick="document.getElementById('importFile').click()" style="flex:1;">Importar JSON</button>
-                    <button onclick="requestFontsFromPhotopea()" title="Recargar fuentes">🔄</button>
+                    <button class="btn-icon" onclick="fontRetries = 0; requestFontsWithRetry()" title="Recargar fuentes">🔄</button>
                 </div>
                 <input type="file" id="importFile" style="display:none" onchange="importJSON(event)">
                 
@@ -264,15 +279,12 @@
         </div>
     </div>
 
-    <div class="footer">TyperTools GNOME | v8.0 (Selección real, copiar estilo, feedback de Photopea)</div>
+    <div class="footer">TyperTools GNOME | v8.0</div>
 
     <script>
         let selectedIndex = -1, activeStyleId = null, filteredLines = [], styles = [];
         const DEFAULT_TAGS = "SFX:\nSfx:\nsfx:\n##\nHalaman\nPage\n---\npage\n===\nP1\nP2\n[1]\nPg.\nPAGE\n=0\n--";
 
-        // --- PROTOCOLO DE COMUNICACIÓN CON PHOTOPEA (JSON bidireccional) ---
-        // Cada mensaje que recibimos de Photopea trae {type, ...}. Cada script que
-        // enviamos SIEMPRE responde algo (éxito, error o debug), nunca falla en silencio.
         window.__ppFonts = [];
         let fontRetries = 0;
 
@@ -293,19 +305,21 @@
             if (!msg) return;
 
             let payload = null;
-            try { payload = JSON.parse(msg); } catch(err) { return; } // ignora mensajes internos de Photopea que no son nuestros
+            try { payload = JSON.parse(msg); } catch(err) { return; } 
             if (!payload || !payload.type) return;
 
             if (payload.type === "fonts") {
                 const fontNames = (payload.data || []).filter(f => f && f.trim() !== "");
                 window.__ppFonts = fontNames;
                 const dl = document.getElementById("fontOptions");
-                dl.innerHTML = "";
+                const optFragment = document.createDocumentFragment();
                 fontNames.forEach(f => {
                     let opt = document.createElement("option");
                     opt.value = f;
-                    dl.appendChild(opt);
+                    optFragment.appendChild(opt);
                 });
+                dl.innerHTML = "";
+                dl.appendChild(optFragment);
                 document.getElementById('sFont').placeholder = `Selecciona entre ${fontNames.length} fuentes...`;
                 setStatus(`${fontNames.length} fuentes cargadas desde Photopea.`);
             } else if (payload.type === "styleSample") {
@@ -317,8 +331,6 @@
             }
         });
 
-        // Pide la lista de fuentes a Photopea. Reintenta si el documento aún no
-        // estaba listo cuando se hizo la primera petición.
         function requestFontsFromPhotopea() {
             document.getElementById('sFont').placeholder = "Pidiendo fuentes a Photopea...";
             setStatus("Solicitando fuentes a Photopea...");
@@ -334,18 +346,22 @@
             window.parent.postMessage(script, "*");
         }
 
+        const FONT_RETRY_DELAYS = [300, 500, 800, 1300, 2000];
+
         function requestFontsWithRetry() {
             requestFontsFromPhotopea();
+            const delay = FONT_RETRY_DELAYS[fontRetries] || null;
             fontRetries++;
+            if (delay == null) return;
             setTimeout(() => {
-                if (window.__ppFonts.length === 0 && fontRetries < 6) {
+                if (window.__ppFonts.length === 0) {
                     requestFontsWithRetry();
+                } else {
+                    fontRetries = 0;
                 }
-            }, 1200);
+            }, delay);
         }
 
-        // Pide a Photopea las propiedades de texto de la capa activa, para poder
-        // clonarlas como un nuevo estilo ("Copiar estilo").
         function requestStyleFromLayer() {
             setStatus("Leyendo estilo de la capa activa en Photopea...");
             const script = `
@@ -396,7 +412,6 @@
             setStatus("Estilo copiado desde la capa. Nota: el trazo (stroke) no se puede leer de forma fiable desde Photopea, revísalo manualmente. Guarda cuando esté listo.");
         }
 
-        // Sincronizar selectores de color
         document.getElementById('sColor').addEventListener('input', function() { document.getElementById('sColorText').value = this.value; });
         document.getElementById('sStrokeColor').addEventListener('input', function() { document.getElementById('sStrokeColorText').value = this.value; });
 
@@ -411,9 +426,21 @@
             m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
         }
 
-        function handleInput() { saveData(); renderLines(); }
+        let renderTimer = null, saveTimer = null;
+
+        function handleInput() {
+            scheduleSave();
+            clearTimeout(renderTimer);
+            renderTimer = setTimeout(renderLines, 120);
+        }
+
+        function scheduleSave() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(saveData, 300);
+        }
 
         function saveData() {
+            clearTimeout(saveTimer);
             localStorage.setItem('typer_main_text', document.getElementById('input').value);
             localStorage.setItem('typer_scale', document.getElementById('scaleInput').value);
             localStorage.setItem('typer_styles', JSON.stringify(styles));
@@ -421,21 +448,39 @@
             localStorage.setItem('ignoreTags', document.getElementById('ignoreTags').value);
         }
 
-        function saveSettings() { saveData(); renderLines(); }
+        window.addEventListener('beforeunload', saveData);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) saveData(); });
+
+        function saveSettings() {
+            scheduleSave();
+            clearTimeout(renderTimer);
+            renderTimer = setTimeout(renderLines, 120);
+        }
 
         function renderStyleGrid() {
             const grid = document.getElementById('styleGrid');
-            grid.innerHTML = '';
+            const fragment = document.createDocumentFragment();
             styles.forEach(s => {
                 const item = document.createElement('div');
                 item.className = `style-item ${activeStyleId == s.id ? 'active' : ''}`;
+                item.title = s.name;
                 item.onclick = () => { activeStyleId = s.id; renderStyleGrid(); saveData(); };
-                item.innerHTML = `<div class="style-name">${s.name}</div>
-                                  <div class="edit-icon" onclick="event.stopPropagation(); openEditStyle('${s.id}')">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                                  </div>`;
-                grid.appendChild(item);
+                const nameEl = document.createElement('div');
+                nameEl.className = 'style-name';
+                nameEl.textContent = s.name;
+
+                const editEl = document.createElement('div');
+                editEl.className = 'edit-icon';
+                editEl.title = 'Editar estilo';
+                editEl.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`;
+                editEl.onclick = (ev) => { ev.stopPropagation(); openEditStyle(s.id); };
+
+                item.appendChild(nameEl);
+                item.appendChild(editEl);
+                fragment.appendChild(item);
             });
+            grid.innerHTML = '';
+            grid.appendChild(fragment);
         }
 
         function openAddStyle() {
@@ -522,26 +567,43 @@
             saveData(); renderStyleGrid(); renderLines(); toggleModal('styleModal');
         }
 
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
         function renderLines() {
             const val = document.getElementById('input').value;
             const ignoreList = (document.getElementById('ignoreTags').value || "").split('\n').map(t => t.trim()).filter(t => t !== "");
             const list = document.getElementById('list');
-            list.innerHTML = ''; filteredLines = [];
+            filteredLines = [];
+
+            const allPrefixes = [];
+            styles.forEach(s => (s.prefixes || []).forEach(p => { if (p) allPrefixes.push(p); }));
+
+            const fragment = document.createDocumentFragment();
 
             val.split('\n').forEach((line) => {
-                if(!line.trim() || ignoreList.some(tag => line.trim().startsWith(tag))) return;
+                const trimmed = line.trim();
+                if (!trimmed || ignoreList.some(tag => trimmed.startsWith(tag))) return;
+
                 let detectedPrefix = "";
-                styles.forEach(s => { (s.prefixes || []).forEach(p => { if(line.trim().startsWith(p)) detectedPrefix = p; }); });
+                for (const p of allPrefixes) { if (trimmed.startsWith(p)) { detectedPrefix = p; break; } }
+
                 filteredLines.push(line);
-                let idx = filteredLines.length - 1;
+                const idx = filteredLines.length - 1;
+                const displayText = escapeHtml(detectedPrefix ? trimmed.slice(detectedPrefix.length).trim() : trimmed);
+
                 const row = document.createElement('div');
                 row.className = `row ${selectedIndex === idx ? 'active' : ''}`;
                 row.id = 'row-' + idx;
-                row.innerHTML = `<span style="width:24px; color:var(--text-muted); font-size:11px;">${idx + 1}</span>
-                                 <span style="flex:1;">${detectedPrefix ? `<span class="tag-pill">${detectedPrefix}</span>` : ""}${line.trim().replace(detectedPrefix, "").trim()}</span>`;
+                row.innerHTML = `<span style="width:24px; flex:none; color:var(--text-muted); font-size:11px;">${idx + 1}</span>
+                                 <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;">${detectedPrefix ? `<span class="tag-pill">${escapeHtml(detectedPrefix)}</span>` : ""}${displayText}</span>`;
                 row.onclick = () => selectRow(idx);
-                list.appendChild(row);
+                fragment.appendChild(row);
             });
+
+            list.innerHTML = '';
+            list.appendChild(fragment);
         }
 
         function selectRow(index) {
@@ -568,7 +630,6 @@
             res += line; return res;
         }
 
-        // --- SOLUCIÓN 2: ENVÍO Y RENDERIZADO CON TRAZO REPARADO ---
         function sendText() {
             if(selectedIndex === -1 || !filteredLines[selectedIndex]) return;
             const scale = (parseFloat(document.getElementById('scaleInput').value) || 100) / 100;
@@ -589,7 +650,6 @@
             const safePointText = escapeText(pointTextContent);
             const safeParagraphText = escapeText(text);
 
-            // Extraer RGB de colores HEX para el script
             const cHex = (style.color || '#ffffff').replace('#', '');
             const cR = parseInt(cHex.substr(0,2), 16), cG = parseInt(cHex.substr(2,2), 16), cB = parseInt(cHex.substr(4,2), 16);
             
@@ -608,9 +668,6 @@
                     px = getVal(b[0]); py = getVal(b[1]);
                     pw = getVal(b[2]) - px; ph = getVal(b[3]) - py;
                     var docW = parseFloat(doc.width), docH = parseFloat(doc.height);
-                    // Si "la selección" ocupa prácticamente todo el lienzo, Photopea no tenía
-                    // una selección real activa (esto pasaba antes y hacía que el texto
-                    // pareciera ir siempre al centro/arriba, ignorando tu selección real).
                     var coversWholeCanvas = (px <= 1 && py <= 1 && Math.abs(pw - docW) <= 2 && Math.abs(ph - docH) <= 2);
                     if (!isNaN(pw) && !isNaN(ph) && pw > 2 && ph > 2 && !coversWholeCanvas) {
                         hasSelection = true;
@@ -657,7 +714,6 @@
                 if(wStyle.indexOf("Bold") != -1) { try { ti.fauxBold = true; } catch(e) {} }
                 if(wStyle.indexOf("Italic") != -1) { try { ti.fauxItalic = true; } catch(e) {} }
 
-                // --- SOLUCIÓN TRAZO / STROKE ---
                 var strokeOk = true;
                 var strokeSize = ${ (style.strokeSize || 0) * scale };
                 if (strokeSize > 0) {
@@ -670,15 +726,13 @@
                         desc.putReference(charIDToTypeID("null"), ref);
                         
                         var fxDesc = new ActionDescriptor();
-                        // Escala global del estilo. Si falta, algunos motores (incl. Photopea)
-                        // pueden renderizar el efecto al 0% de tamaño, es decir: invisible.
                         fxDesc.putUnitDouble(charIDToTypeID("Scl "), charIDToTypeID("#Prc"), 100);
 
                         var strokeDesc = new ActionDescriptor();
                         strokeDesc.putBoolean(charIDToTypeID("enab"), true);
-                        strokeDesc.putEnumerated(charIDToTypeID("Styl"), charIDToTypeID("FStl"), charIDToTypeID("OutF")); // Outside
-                        strokeDesc.putEnumerated(charIDToTypeID("PntT"), charIDToTypeID("FrFl"), charIDToTypeID("SClr")); // Solid Color (el enum correcto es "SClr", no "SldC")
-                        strokeDesc.putEnumerated(charIDToTypeID("Md  "), charIDToTypeID("BlnM"), charIDToTypeID("Nrml")); // Normal Blend
+                        strokeDesc.putEnumerated(charIDToTypeID("Styl"), charIDToTypeID("FStl"), charIDToTypeID("OutF"));
+                        strokeDesc.putEnumerated(charIDToTypeID("PntT"), charIDToTypeID("FrFl"), charIDToTypeID("SClr"));
+                        strokeDesc.putEnumerated(charIDToTypeID("Md  "), charIDToTypeID("BlnM"), charIDToTypeID("Nrml"));
                         strokeDesc.putUnitDouble(charIDToTypeID("Opct"), charIDToTypeID("#Prc"), 100);
                         strokeDesc.putUnitDouble(charIDToTypeID("Sz  "), charIDToTypeID("#Pxl"), strokeSize);
                         
@@ -688,9 +742,6 @@
                         colorDesc.putDouble(charIDToTypeID("Bl  "), ${sB});
                         strokeDesc.putObject(charIDToTypeID("Clr "), charIDToTypeID("RGBC"), colorDesc);
                         
-                        // OJO: el class ID del objeto de trazo dentro de un Layer Style es "Lefx",
-                        // NO "FrFX" (ese era el bug: la acción se ejecutaba sin error pero no
-                        // dibujaba nada porque el objeto quedaba con el tipo equivocado).
                         fxDesc.putObject(charIDToTypeID("FrFX"), charIDToTypeID("Lefx"), strokeDesc);
                         desc.putObject(charIDToTypeID("T   "), charIDToTypeID("Lefx"), fxDesc);
                         
@@ -717,7 +768,6 @@
             setTimeout(() => selectRow(selectedIndex + 1), 50); 
         }
 
-        // Import / Export
         function exportJSON() {
             const data = { styles, ignoreLinePrefixes: document.getElementById('ignoreTags').value.split('\n') };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -747,7 +797,6 @@
             renderStyleGrid(); 
             renderLines();
 
-            // Pide las fuentes con reintentos automáticos por si Photopea aún no estaba listo
             setTimeout(requestFontsWithRetry, 500);
         }
     </script>
