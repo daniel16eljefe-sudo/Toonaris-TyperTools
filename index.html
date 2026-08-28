@@ -206,6 +206,10 @@
                     <div>
                         <span class="modal-label">Interlineado (%)</span>
                         <input type="number" id="sLeading" class="modal-input" value="120">
+                        <label style="display:flex; align-items:center; gap:6px; margin-top:6px; font-size:11px; color:var(--text-muted); cursor:pointer; user-select:none;">
+                            <input type="checkbox" id="sAutoLeading" onchange="toggleAutoLeading()" style="width:auto; cursor:pointer;">
+                            Auto (120%)
+                        </label>
                     </div>
                     <div>
                         <span class="modal-label">Alineación</span>
@@ -265,7 +269,7 @@
                 <div style="display:flex; gap:8px;">
                     <button onclick="exportJSON()" style="flex:1;">Exportar JSON</button>
                     <button onclick="document.getElementById('importFile').click()" style="flex:1;">Importar JSON</button>
-                    <button class="btn-icon" onclick="fontRetries = 0; requestFontsWithRetry()" title="Recargar fuentes">🔄</button>
+                    <button class="btn-icon" onclick="fontRetries = 0; fontsRequestInFlight = false; requestFontsWithRetry()" title="Recargar fuentes">🔄</button>
                 </div>
                 <input type="file" id="importFile" style="display:none" onchange="importJSON(event)">
                 
@@ -287,6 +291,35 @@
 
         window.__ppFonts = [];
         let fontRetries = 0;
+        let fontsRequestInFlight = false;
+        const FONT_CACHE_KEY = 'typer_fonts_cache';
+        const FONT_CACHE_TIME_KEY = 'typer_fonts_cache_time';
+
+        function populateFontList(fontNames, sourceLabel) {
+            window.__ppFonts = fontNames;
+            const dl = document.getElementById("fontOptions");
+            const optFragment = document.createDocumentFragment();
+            fontNames.forEach(f => {
+                let opt = document.createElement("option");
+                opt.value = f;
+                optFragment.appendChild(opt);
+            });
+            dl.innerHTML = "";
+            dl.appendChild(optFragment);
+            document.getElementById('sFont').placeholder = `Selecciona entre ${fontNames.length} fuentes...`;
+            setStatus(`${fontNames.length} fuentes ${sourceLabel}.`);
+        }
+
+        function loadFontsFromCache() {
+            try {
+                const cached = JSON.parse(localStorage.getItem(FONT_CACHE_KEY) || "[]");
+                if (Array.isArray(cached) && cached.length > 0) {
+                    populateFontList(cached, "cargadas desde caché (actualizando en segundo plano...)");
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
 
         function setStatus(msg, isError) {
             const el = document.getElementById('statusBar');
@@ -309,19 +342,15 @@
             if (!payload || !payload.type) return;
 
             if (payload.type === "fonts") {
+                fontsRequestInFlight = false;
                 const fontNames = (payload.data || []).filter(f => f && f.trim() !== "");
-                window.__ppFonts = fontNames;
-                const dl = document.getElementById("fontOptions");
-                const optFragment = document.createDocumentFragment();
-                fontNames.forEach(f => {
-                    let opt = document.createElement("option");
-                    opt.value = f;
-                    optFragment.appendChild(opt);
-                });
-                dl.innerHTML = "";
-                dl.appendChild(optFragment);
-                document.getElementById('sFont').placeholder = `Selecciona entre ${fontNames.length} fuentes...`;
-                setStatus(`${fontNames.length} fuentes cargadas desde Photopea.`);
+                if (fontNames.length > 0) {
+                    populateFontList(fontNames, "cargadas desde Photopea");
+                    try {
+                        localStorage.setItem(FONT_CACHE_KEY, JSON.stringify(fontNames));
+                        localStorage.setItem(FONT_CACHE_TIME_KEY, Date.now().toString());
+                    } catch(e) {}
+                }
             } else if (payload.type === "styleSample") {
                 applySampledStyle(payload.data);
             } else if (payload.type === "debug") {
@@ -332,8 +361,14 @@
         });
 
         function requestFontsFromPhotopea() {
-            document.getElementById('sFont').placeholder = "Pidiendo fuentes a Photopea...";
-            setStatus("Solicitando fuentes a Photopea...");
+            if (fontsRequestInFlight) return; // evita pedidos duplicados que puedan saturar a Photopea
+            fontsRequestInFlight = true;
+            if (window.__ppFonts.length === 0) {
+                document.getElementById('sFont').placeholder = "Pidiendo fuentes a Photopea...";
+                setStatus("Solicitando fuentes a Photopea...");
+            }
+            // Se pide de forma asíncrona (postMessage) para no bloquear la interfaz del plugin
+            // mientras Photopea recorre su lista de fuentes.
             const script = `
                 try {
                     var f = [];
@@ -344,9 +379,12 @@
                 }
             `;
             window.parent.postMessage(script, "*");
+            // Si Photopea nunca responde (por ejemplo el iframe aún no está listo), liberamos
+            // el candado tras un margen para permitir el siguiente reintento sin quedar congelado.
+            setTimeout(() => { fontsRequestInFlight = false; }, 2500);
         }
 
-        const FONT_RETRY_DELAYS = [300, 500, 800, 1300, 2000];
+        const FONT_RETRY_DELAYS = [300, 600, 1200];
 
         function requestFontsWithRetry() {
             requestFontsFromPhotopea();
@@ -354,6 +392,7 @@
             fontRetries++;
             if (delay == null) return;
             setTimeout(() => {
+                // Solo reintenta si seguimos sin ninguna fuente (ni de Photopea ni de caché)
                 if (window.__ppFonts.length === 0) {
                     requestFontsWithRetry();
                 } else {
@@ -381,13 +420,16 @@
                         if (justif.indexOf("LEFT") !== -1) align = "LEFT";
                         else if (justif.indexOf("RIGHT") !== -1) align = "RIGHT";
                         var leadingPct = 120;
-                        try { if (!ti.useAutoLeading) leadingPct = Math.round((ti.leading / ti.size) * 100); } catch(e2) {}
+                        var isAutoLeading = false;
+                        try { isAutoLeading = !!ti.useAutoLeading; } catch(e2) {}
+                        try { if (!isAutoLeading) leadingPct = Math.round((ti.leading / ti.size) * 100); } catch(e2) {}
                         var data = {
                             font: ti.font,
                             size: Math.round(ti.size),
                             color: toHex(ti.color),
                             align: align,
                             leading: leadingPct,
+                            autoLeading: isAutoLeading,
                             weight: (ti.fauxBold && ti.fauxItalic) ? "Bold Italic" : (ti.fauxBold ? "Bold" : (ti.fauxItalic ? "Italic" : "Regular"))
                         };
                         app.echoToOE(JSON.stringify({type:"styleSample", data:data}));
@@ -408,8 +450,16 @@
             document.getElementById('sColorText').value = data.color || "#ffffff";
             document.getElementById('sAlign').value = data.align || "CENTER";
             document.getElementById('sLeading').value = data.leading || 120;
+            document.getElementById('sAutoLeading').checked = !!data.autoLeading;
+            toggleAutoLeading();
             document.getElementById('sWeight').value = data.weight || "Regular";
             setStatus("Estilo copiado desde la capa. Nota: el trazo (stroke) no se puede leer de forma fiable desde Photopea, revísalo manualmente. Guarda cuando esté listo.");
+        }
+
+        function toggleAutoLeading() {
+            const auto = document.getElementById('sAutoLeading').checked;
+            document.getElementById('sLeading').disabled = auto;
+            document.getElementById('sLeading').style.opacity = auto ? 0.5 : 1;
         }
 
         document.getElementById('sColor').addEventListener('input', function() { document.getElementById('sColorText').value = this.value; });
@@ -491,6 +541,8 @@
             document.getElementById('sWeight').value = "Regular";
             document.getElementById('sCase').value = "none";
             document.getElementById('sLeading').value = 120;
+            document.getElementById('sAutoLeading').checked = false;
+            toggleAutoLeading();
             document.getElementById('sSize').value = 50;
             document.getElementById('sColor').value = "#ffffff";
             document.getElementById('sColorText').value = "#ffffff";
@@ -514,6 +566,8 @@
             document.getElementById('sWeight').value = s.weight || "Regular";
             document.getElementById('sCase').value = s.case || "none";
             document.getElementById('sLeading').value = s.leading || 120;
+            document.getElementById('sAutoLeading').checked = !!s.autoLeading;
+            toggleAutoLeading();
             document.getElementById('sSize').value = s.size;
             document.getElementById('sColor').value = s.color || "#ffffff";
             document.getElementById('sColorText').value = s.color || "#ffffff";
@@ -536,6 +590,7 @@
                 weight: document.getElementById('sWeight').value,
                 case: document.getElementById('sCase').value,
                 leading: parseFloat(document.getElementById('sLeading').value) || 120,
+                autoLeading: document.getElementById('sAutoLeading').checked,
                 size: parseInt(document.getElementById('sSize').value) || 50,
                 color: document.getElementById('sColorText').value || "#ffffff",
                 strokeSize: parseInt(document.getElementById('sStrokeSize').value) || 0,
@@ -633,7 +688,7 @@
         function sendText() {
             if(selectedIndex === -1 || !filteredLines[selectedIndex]) return;
             const scale = (parseFloat(document.getElementById('scaleInput').value) || 100) / 100;
-            const style = styles.find(s => s.id == activeStyleId) || { font: "ArialMT", size: 50, weight: "Regular", case: "none", leading: 120, color: "#ffffff", align: "CENTER", wrap: 25, strokeSize: 0 };
+            const style = styles.find(s => s.id == activeStyleId) || { font: "ArialMT", size: 50, weight: "Regular", case: "none", leading: 120, autoLeading: false, color: "#ffffff", align: "CENTER", wrap: 25, strokeSize: 0 };
             
             let raw = filteredLines[selectedIndex].trim();
             let prefix = (style.prefixes || []).find(p => raw.startsWith(p)) || "";
@@ -655,6 +710,21 @@
             
             const sHex = (style.strokeColor || '#000000').replace('#', '');
             const sR = parseInt(sHex.substr(0,2), 16), sG = parseInt(sHex.substr(2,2), 16), sB = parseInt(sHex.substr(4,2), 16);
+
+            // Interlineado: si el estilo pide "Auto", intentamos el automático nativo de Photopea
+            // (useAutoLeading = true). Si eso falla en el entorno de Photopea, forzamos 120% manual.
+            const leadingScript = style.autoLeading
+                ? `
+                var leadingOk = true;
+                try {
+                    ti.useAutoLeading = true;
+                } catch(autoLeadErr) {
+                    leadingOk = false;
+                    try { ti.useAutoLeading = false; ti.leading = ${style.size * 1.2 * scale}; } catch(e2) {}
+                }`
+                : `
+                var leadingOk = true;
+                try { ti.useAutoLeading = false; ti.leading = ${style.size * ((style.leading || 120) / 100) * scale}; } catch(e2) { leadingOk = false; }`;
 
             const ppea = `
               try {
@@ -708,7 +778,7 @@
                     ti.color = textColor;
                 } catch(colorErr) { colorOk = false; }
 
-                try { ti.useAutoLeading = false; ti.leading = ${style.size * ((style.leading || 120) / 100) * scale}; } catch(e) {}
+                ${leadingScript}
 
                 var wStyle = "${style.weight}";
                 if(wStyle.indexOf("Bold") != -1) { try { ti.fauxBold = true; } catch(e) {} }
@@ -757,6 +827,7 @@
                 report += " Color pedido: ${cR},${cG},${cB}, aplicado: " + actualColor + ".";
                 if (!fontOk) report += " AVISO: la fuente '${style.font}' no existe en Photopea, se usó la fuente por defecto.";
                 if (!sizeOk) report += " AVISO: el tamaño lanzó un error al aplicarse.";
+                if (typeof leadingOk !== "undefined" && !leadingOk) report += " AVISO: el interlineado automático falló, se forzó a 120% manual.";
                 if (!colorOk) report += " AVISO: el color lanzó un error al aplicarse.";
                 if (strokeSize > 0 && !strokeOk) report += " AVISO: el trazo no se pudo aplicar.";
                 app.echoToOE(JSON.stringify({type: (fontOk && sizeOk && colorOk && strokeOk) ? "debug" : "error", msg: report}));
@@ -797,6 +868,11 @@
             renderStyleGrid(); 
             renderLines();
 
+            // 1) Mostramos de inmediato las fuentes guardadas de la sesión anterior (si existen),
+            //    así el desplegable ya funciona sin esperar a Photopea.
+            loadFontsFromCache();
+            // 2) En paralelo (sin bloquear la interfaz) pedimos la lista actualizada a Photopea.
+            //    Si ya había caché, esto solo la refresca una vez; si no, reintenta unas pocas veces.
             setTimeout(requestFontsWithRetry, 500);
         }
     </script>
