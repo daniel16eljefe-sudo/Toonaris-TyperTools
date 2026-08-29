@@ -103,7 +103,7 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: var(--header-bg); position: sticky; top: 0; z-index: 5; }
         .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
         
-        .modal-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: -6px; display: block; }
+        .modal-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
         .modal-input, .modal-select { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: var(--border-radius-md); font-size: 13px; outline: none; width: 100%; box-sizing: border-box; transition: border 0.2s; }
         .modal-input:focus, .modal-select:focus { border-color: var(--accent-bg); }
         
@@ -781,8 +781,8 @@
                 ${leadingScript}
 
                 var wStyle = "${style.weight}";
-                if(wStyle.indexOf("Bold") != -1) { try { ti.fauxBold = true; } catch(e) {} }
-                if(wStyle.indexOf("Italic") != -1) { try { ti.fauxItalic = true; } catch(e) {} }
+                try { ti.fauxBold = (wStyle.indexOf("Bold") != -1); } catch(e) {}
+                try { ti.fauxItalic = (wStyle.indexOf("Italic") != -1); } catch(e) {}
 
                 var strokeOk = true;
                 var strokeSize = ${ (style.strokeSize || 0) * scale };
