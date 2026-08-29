@@ -61,26 +61,34 @@
         .scale-input { background: transparent; border: none; color: white; width: 38px; text-align: center; font-weight: bold; outline: none; padding: 0; }
         .scale-input::-webkit-outer-spin-button, .scale-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-        /* INPUT AREA */
-        textarea#input { 
-            width: 100%; height: 90px; background: var(--window-bg); color: var(--text-main); 
-            border: none; border-bottom: 1px solid var(--border-color); padding: 12px; 
-            box-sizing: border-box; resize: none; font-family: 'Fira Code', 'Consolas', monospace; 
-            outline: none; font-size: 13px; line-height: 1.4; flex-shrink: 0;
-        }
-        textarea#input:focus { border-bottom: 2px solid var(--accent-bg); }
-        
         /* MAIN LAYOUT */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; gap: 10px; padding: 10px; }
-        
-        /* LIST BOX */
-        .list-card { flex: 1.5; overflow-y: auto; background: var(--card-bg); border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .row { display: flex; align-items: center; padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); transition: background 0.1s; }
-        .row:last-child { border-bottom: none; }
-        .row:hover { background: var(--card-bg-hover); }
-        .row.active { background: rgba(53, 132, 228, 0.2); border-left: 4px solid var(--accent-bg); padding-left: 8px; }
-        
-        .tag-pill { background: #f6d32d; color: #000; padding: 2px 6px; border-radius: 10px; margin-right: 8px; font-weight: 700; font-size: 10px; text-transform: uppercase; }
+
+        /* EDITOR (antes: textarea + lista aparte. Ahora: un solo cuadro editable
+           con una capa visual detrás que resalta líneas reconocidas/ignoradas/activa) */
+        .editor-wrap {
+            flex: 1.5; position: relative; overflow: hidden; background: var(--card-bg);
+            border-radius: var(--border-radius-lg); border: 1px solid var(--border-color);
+        }
+        .editor-wrap:focus-within { border-color: var(--accent-bg); }
+
+        .editor-backdrop, textarea#input {
+            position: absolute; inset: 0; margin: 0; padding: 10px 12px; width: 100%; height: 100%;
+            font-family: 'Fira Code', 'Consolas', monospace; font-size: 13px; line-height: 1.5;
+            white-space: pre-wrap; word-wrap: break-word; box-sizing: border-box; border: none;
+        }
+        .editor-backdrop {
+            overflow: hidden; pointer-events: none; color: transparent;
+        }
+        .editor-backdrop .line { white-space: pre-wrap; word-wrap: break-word; border-left: 4px solid transparent; margin-left: -12px; padding-left: 8px; }
+        .editor-backdrop .line.line-tagged { border-left-color: #f6d32d; background: rgba(246, 211, 45, 0.08); }
+        .editor-backdrop .line.line-ignored { background: rgba(224, 27, 36, 0.06); opacity: 0.55; }
+        .editor-backdrop .line.line-active { background: rgba(53, 132, 228, 0.22); border-left-color: var(--accent-bg); }
+
+        textarea#input {
+            background: transparent; color: var(--text-main); outline: none; resize: none;
+            overflow-y: auto; caret-color: var(--text-main); z-index: 1;
+        }
 
         /* STYLE GRID */
         .style-grid-container { flex: 1; background: var(--card-bg); border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); padding: 10px; overflow-y: auto; }
@@ -96,6 +104,19 @@
         .style-name { flex: 1; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .edit-icon { color: var(--text-muted); padding: 4px; border-radius: 4px; flex: none; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
         .edit-icon:hover { background: var(--header-bg); color: var(--text-main); }
+
+        /* CARPETAS DE ESTILOS */
+        .folder-section:not(:last-child) { margin-bottom: 10px; }
+        .folder-header {
+            display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;
+            padding: 6px 4px; color: var(--text-muted); font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .folder-header:hover { color: var(--text-main); }
+        .folder-header .chevron { transition: transform 0.15s ease; flex: none; display: flex; }
+        .folder-header.collapsed .chevron { transform: rotate(-90deg); }
+        .folder-header .folder-count { background: var(--input-bg); border-radius: 8px; padding: 1px 7px; font-size: 10px; }
+        .folder-section.collapsed .style-grid { display: none; }
 
         /* MODALS (Fix aplicado aquí) */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 200; align-items: center; justify-content: center; }
@@ -145,16 +166,18 @@
     </div>
     <div id="statusBar" style="padding:4px 12px; font-size:11px; color:var(--text-muted); background:var(--header-bg); border-bottom:1px solid var(--border-color); min-height:14px; max-height:48px; overflow-y:auto; line-height:1.4;">Listo.</div>
 
-    <textarea id="input" oninput="handleInput()" placeholder="Pega el guion aquí..."></textarea>
-    
     <div class="main-content">
-        <div class="list-card" id="list"></div>
+        <div class="editor-wrap">
+            <div class="editor-backdrop" id="editorBackdrop"></div>
+            <textarea id="input" oninput="handleInput()" onclick="handleCaretMove()" onkeyup="handleCaretMove()" onselect="handleCaretMove()" onscroll="syncBackdropScroll()" placeholder="Pega o escribe el guion aquí. Las líneas reconocidas y la línea activa se resaltan solas."></textarea>
+        </div>
         <div class="style-grid-container">
-            <div class="style-grid" id="styleGrid"></div>
+            <div id="styleGrid"></div>
         </div>
     </div>
 
     <datalist id="fontOptions"></datalist>
+    <datalist id="folderOptions"></datalist>
 
     <div class="ad-container" id="adSpace">
         <!-- Espacio para Anuncios -->
@@ -171,15 +194,21 @@
             <div class="modal-body">
                 <input type="hidden" id="editStyleId">
                 
-                <div>
-                    <span class="modal-label">Nombre del Estilo</span>
-                    <input type="text" id="sName" class="modal-input" placeholder="Ej: Narrativa, Grito, SFX">
+                <div class="modal-grid">
+                    <div>
+                        <span class="modal-label">Nombre del Estilo</span>
+                        <input type="text" id="sName" class="modal-input" placeholder="Ej: Narrativa, Grito, SFX">
+                    </div>
+                    <div>
+                        <span class="modal-label">Carpeta (opcional)</span>
+                        <input type="text" id="sFolder" list="folderOptions" class="modal-input" placeholder="Ej: Pensamientos">
+                    </div>
                 </div>
                 
                 <div class="modal-grid">
                     <div style="grid-column: span 2;">
                         <span class="modal-label">Fuente (Selecciona o escribe)</span>
-                        <input list="fontOptions" id="sFont" class="modal-input" placeholder="Cargando fuentes de Photopea...">
+                        <input list="fontOptions" id="sFont" class="modal-input" placeholder="Escribe el nombre exacto o usa 🎨 para copiarlo de una capa">
                     </div>
                     <div>
                         <span class="modal-label">Tamaño (px)</span>
@@ -269,7 +298,6 @@
                 <div style="display:flex; gap:8px;">
                     <button onclick="exportJSON()" style="flex:1;">Exportar JSON</button>
                     <button onclick="document.getElementById('importFile').click()" style="flex:1;">Importar JSON</button>
-                    <button class="btn-icon" onclick="fontRetries = 0; fontsRequestInFlight = false; requestFontsWithRetry()" title="Recargar fuentes">🔄</button>
                 </div>
                 <input type="file" id="importFile" style="display:none" onchange="importJSON(event)">
                 
@@ -289,36 +317,41 @@
         let selectedIndex = -1, activeStyleId = null, filteredLines = [], styles = [];
         const DEFAULT_TAGS = "SFX:\nSfx:\nsfx:\n##\nHalaman\nPage\n---\npage\n===\nP1\nP2\n[1]\nPg.\nPAGE\n=0\n--";
 
-        window.__ppFonts = [];
-        let fontRetries = 0;
-        let fontsRequestInFlight = false;
-        const FONT_CACHE_KEY = 'typer_fonts_cache';
-        const FONT_CACHE_TIME_KEY = 'typer_fonts_cache_time';
+        let folderCollapsed = {};
 
-        function populateFontList(fontNames, sourceLabel) {
-            window.__ppFonts = fontNames;
+        // Ya no se le piden TODAS las fuentes instaladas a Photopea. En su lugar,
+        // el desplegable de fuentes se llena únicamente con las fuentes que vos
+        // mismo ya asignaste a algún estilo guardado (o que copiaste con 🎨 desde
+        // una capa de texto armada a mano en Photopea).
+        function updateFontDatalist() {
+            const used = [...new Set(styles.map(s => (s.font || "").trim()).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b));
             const dl = document.getElementById("fontOptions");
+            dl.innerHTML = "";
             const optFragment = document.createDocumentFragment();
-            fontNames.forEach(f => {
+            used.forEach(f => {
                 let opt = document.createElement("option");
                 opt.value = f;
                 optFragment.appendChild(opt);
             });
-            dl.innerHTML = "";
             dl.appendChild(optFragment);
-            document.getElementById('sFont').placeholder = `Selecciona entre ${fontNames.length} fuentes...`;
-            setStatus(`${fontNames.length} fuentes ${sourceLabel}.`);
+            document.getElementById('sFont').placeholder = used.length
+                ? `Fuente (${used.length} ya usada${used.length === 1 ? '' : 's'} antes)...`
+                : "Escribe el nombre exacto o usa 🎨 para copiarlo de una capa";
         }
 
-        function loadFontsFromCache() {
-            try {
-                const cached = JSON.parse(localStorage.getItem(FONT_CACHE_KEY) || "[]");
-                if (Array.isArray(cached) && cached.length > 0) {
-                    populateFontList(cached, "cargadas desde caché (actualizando en segundo plano...)");
-                    return true;
-                }
-            } catch(e) {}
-            return false;
+        function updateFolderDatalist() {
+            const used = [...new Set(styles.map(s => (s.folder || "").trim()).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b));
+            const dl = document.getElementById("folderOptions");
+            dl.innerHTML = "";
+            const optFragment = document.createDocumentFragment();
+            used.forEach(f => {
+                let opt = document.createElement("option");
+                opt.value = f;
+                optFragment.appendChild(opt);
+            });
+            dl.appendChild(optFragment);
         }
 
         function setStatus(msg, isError) {
@@ -341,17 +374,7 @@
             try { payload = JSON.parse(msg); } catch(err) { return; } 
             if (!payload || !payload.type) return;
 
-            if (payload.type === "fonts") {
-                fontsRequestInFlight = false;
-                const fontNames = (payload.data || []).filter(f => f && f.trim() !== "");
-                if (fontNames.length > 0) {
-                    populateFontList(fontNames, "cargadas desde Photopea");
-                    try {
-                        localStorage.setItem(FONT_CACHE_KEY, JSON.stringify(fontNames));
-                        localStorage.setItem(FONT_CACHE_TIME_KEY, Date.now().toString());
-                    } catch(e) {}
-                }
-            } else if (payload.type === "styleSample") {
+            if (payload.type === "styleSample") {
                 applySampledStyle(payload.data);
             } else if (payload.type === "debug") {
                 setStatus(payload.msg);
@@ -359,47 +382,6 @@
                 setStatus("⚠ " + payload.msg, true);
             }
         });
-
-        function requestFontsFromPhotopea() {
-            if (fontsRequestInFlight) return; // evita pedidos duplicados que puedan saturar a Photopea
-            fontsRequestInFlight = true;
-            if (window.__ppFonts.length === 0) {
-                document.getElementById('sFont').placeholder = "Pidiendo fuentes a Photopea...";
-                setStatus("Solicitando fuentes a Photopea...");
-            }
-            // Se pide de forma asíncrona (postMessage) para no bloquear la interfaz del plugin
-            // mientras Photopea recorre su lista de fuentes.
-            const script = `
-                try {
-                    var f = [];
-                    for (var i = 0; i < app.fonts.length; i++) { f.push(app.fonts[i].name); }
-                    app.echoToOE(JSON.stringify({type:"fonts", data:f}));
-                } catch(e) {
-                    app.echoToOE(JSON.stringify({type:"error", msg:"No se pudieron leer las fuentes: " + e.message}));
-                }
-            `;
-            window.parent.postMessage(script, "*");
-            // Si Photopea nunca responde (por ejemplo el iframe aún no está listo), liberamos
-            // el candado tras un margen para permitir el siguiente reintento sin quedar congelado.
-            setTimeout(() => { fontsRequestInFlight = false; }, 2500);
-        }
-
-        const FONT_RETRY_DELAYS = [300, 600, 1200];
-
-        function requestFontsWithRetry() {
-            requestFontsFromPhotopea();
-            const delay = FONT_RETRY_DELAYS[fontRetries] || null;
-            fontRetries++;
-            if (delay == null) return;
-            setTimeout(() => {
-                // Solo reintenta si seguimos sin ninguna fuente (ni de Photopea ni de caché)
-                if (window.__ppFonts.length === 0) {
-                    requestFontsWithRetry();
-                } else {
-                    fontRetries = 0;
-                }
-            }, delay);
-        }
 
         function requestStyleFromLayer() {
             setStatus("Leyendo estilo de la capa activa en Photopea...");
@@ -496,6 +478,7 @@
             localStorage.setItem('typer_styles', JSON.stringify(styles));
             localStorage.setItem('typer_active_style', activeStyleId);
             localStorage.setItem('ignoreTags', document.getElementById('ignoreTags').value);
+            localStorage.setItem('typer_collapsed_folders', JSON.stringify(folderCollapsed));
         }
 
         window.addEventListener('beforeunload', saveData);
@@ -507,36 +490,83 @@
             renderTimer = setTimeout(renderLines, 120);
         }
 
+        function createStyleItemEl(s) {
+            const item = document.createElement('div');
+            item.className = `style-item ${activeStyleId == s.id ? 'active' : ''}`;
+            item.title = s.name;
+            item.onclick = () => { activeStyleId = s.id; renderStyleGrid(); saveData(); };
+            const nameEl = document.createElement('div');
+            nameEl.className = 'style-name';
+            nameEl.textContent = s.name;
+
+            const editEl = document.createElement('div');
+            editEl.className = 'edit-icon';
+            editEl.title = 'Editar estilo';
+            editEl.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`;
+            editEl.onclick = (ev) => { ev.stopPropagation(); openEditStyle(s.id); };
+
+            item.appendChild(nameEl);
+            item.appendChild(editEl);
+            return item;
+        }
+
+        function toggleFolder(folderKey) {
+            folderCollapsed[folderKey] = !folderCollapsed[folderKey];
+            saveData();
+            renderStyleGrid();
+        }
+
         function renderStyleGrid() {
-            const grid = document.getElementById('styleGrid');
-            const fragment = document.createDocumentFragment();
+            const container = document.getElementById('styleGrid');
+            container.innerHTML = '';
+
+            // Agrupa los estilos por carpeta (los que no tienen carpeta van en "Sin carpeta").
+            const groups = new Map();
             styles.forEach(s => {
-                const item = document.createElement('div');
-                item.className = `style-item ${activeStyleId == s.id ? 'active' : ''}`;
-                item.title = s.name;
-                item.onclick = () => { activeStyleId = s.id; renderStyleGrid(); saveData(); };
-                const nameEl = document.createElement('div');
-                nameEl.className = 'style-name';
-                nameEl.textContent = s.name;
-
-                const editEl = document.createElement('div');
-                editEl.className = 'edit-icon';
-                editEl.title = 'Editar estilo';
-                editEl.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`;
-                editEl.onclick = (ev) => { ev.stopPropagation(); openEditStyle(s.id); };
-
-                item.appendChild(nameEl);
-                item.appendChild(editEl);
-                fragment.appendChild(item);
+                const key = (s.folder || "").trim();
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(s);
             });
-            grid.innerHTML = '';
-            grid.appendChild(fragment);
+
+            // Orden alfabético de carpetas, dejando "Sin carpeta" (clave "") al final.
+            const folderKeys = [...groups.keys()].sort((a, b) => {
+                if (a === "" && b === "") return 0;
+                if (a === "") return 1;
+                if (b === "") return -1;
+                return a.localeCompare(b);
+            });
+
+            const fragment = document.createDocumentFragment();
+            folderKeys.forEach(key => {
+                const items = groups.get(key);
+                const section = document.createElement('div');
+                section.className = 'folder-section' + (folderCollapsed[key] ? ' collapsed' : '');
+
+                // Si solo existe la carpeta "Sin carpeta" (o sea, no hay carpetas creadas),
+                // no mostramos encabezado para no añadir ruido visual innecesario.
+                if (!(key === "" && folderKeys.length === 1)) {
+                    const header = document.createElement('div');
+                    header.className = 'folder-header' + (folderCollapsed[key] ? ' collapsed' : '');
+                    header.innerHTML = `<span class="chevron">▾</span><span>${escapeHtml(key || "Sin carpeta")}</span><span class="folder-count">${items.length}</span>`;
+                    header.onclick = () => toggleFolder(key);
+                    section.appendChild(header);
+                }
+
+                const grid = document.createElement('div');
+                grid.className = 'style-grid';
+                items.forEach(s => grid.appendChild(createStyleItemEl(s)));
+                section.appendChild(grid);
+
+                fragment.appendChild(section);
+            });
+            container.appendChild(fragment);
         }
 
         function openAddStyle() {
             document.getElementById('styleModalTitle').innerText = "Nuevo Estilo";
             document.getElementById('editStyleId').value = "";
             document.getElementById('sName').value = "Nuevo Estilo";
+            document.getElementById('sFolder').value = "";
             document.getElementById('sFont').value = "";
             document.getElementById('sWeight').value = "Regular";
             document.getElementById('sCase').value = "none";
@@ -562,6 +592,7 @@
             document.getElementById('styleModalTitle').innerText = "Editar: " + s.name;
             document.getElementById('editStyleId').value = s.id;
             document.getElementById('sName').value = s.name;
+            document.getElementById('sFolder').value = s.folder || "";
             document.getElementById('sFont').value = s.font;
             document.getElementById('sWeight').value = s.weight || "Regular";
             document.getElementById('sCase').value = s.case || "none";
@@ -586,6 +617,7 @@
             const newStyle = {
                 id: id || Date.now().toString(),
                 name: document.getElementById('sName').value || "Sin Nombre",
+                folder: document.getElementById('sFolder').value.trim(),
                 font: document.getElementById('sFont').value || "ArialMT",
                 weight: document.getElementById('sWeight').value,
                 case: document.getElementById('sCase').value,
@@ -606,68 +638,117 @@
                 styles.push(newStyle);
                 if(!activeStyleId) activeStyleId = newStyle.id;
             }
-            saveData(); renderStyleGrid(); renderLines(); toggleModal('styleModal');
-
-            if (window.__ppFonts.length && !window.__ppFonts.includes(newStyle.font)) {
-                setStatus(`⚠ "${newStyle.font}" no coincide con ninguna fuente de Photopea. Elígela del desplegable para asegurar que se aplique bien.`, true);
-            } else {
-                setStatus(`Estilo "${newStyle.name}" guardado.`);
-            }
+            saveData(); updateFontDatalist(); updateFolderDatalist(); renderStyleGrid(); renderLines(); toggleModal('styleModal');
+            setStatus(`Estilo "${newStyle.name}" guardado.`);
         }
 
         function deleteStyle() {
             const id = document.getElementById('editStyleId').value;
             styles = styles.filter(x => x.id != id);
             if(activeStyleId == id) activeStyleId = styles[0]?.id || null;
-            saveData(); renderStyleGrid(); renderLines(); toggleModal('styleModal');
+            saveData(); updateFontDatalist(); updateFolderDatalist(); renderStyleGrid(); renderLines(); toggleModal('styleModal');
         }
 
         function escapeHtml(str) {
             return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
+        // Mapeos entre "línea cruda" (tal cual aparece en el textarea, incluyendo
+        // vacías/ignoradas) y "línea filtrada" (las que realmente se pueden enviar).
+        // Se recalculan en cada renderLines() y los usan handleCaretMove()/selectRow().
+        let rawLines = [];
+        let rawToFiltered = [];   // por cada línea cruda: índice en filteredLines, o -1
+        let filteredToRaw = [];   // por cada línea filtrada: su índice de línea cruda
+
         function renderLines() {
-            const val = document.getElementById('input').value;
+            const textarea = document.getElementById('input');
+            const val = textarea.value;
             const ignoreList = (document.getElementById('ignoreTags').value || "").split('\n').map(t => t.trim()).filter(t => t !== "");
-            const list = document.getElementById('list');
+            const backdrop = document.getElementById('editorBackdrop');
+
             filteredLines = [];
+            rawToFiltered = [];
+            filteredToRaw = [];
+
+            if (!val) { backdrop.innerHTML = ''; rawLines = ['']; rawToFiltered = [-1]; return; }
 
             const allPrefixes = [];
             styles.forEach(s => (s.prefixes || []).forEach(p => { if (p) allPrefixes.push(p); }));
 
+            rawLines = val.split('\n');
             const fragment = document.createDocumentFragment();
 
-            val.split('\n').forEach((line) => {
+            rawLines.forEach((line, rawIdx) => {
                 const trimmed = line.trim();
-                if (!trimmed || ignoreList.some(tag => trimmed.startsWith(tag))) return;
+                const isIgnored = !trimmed || ignoreList.some(tag => trimmed.startsWith(tag));
 
                 let detectedPrefix = "";
-                for (const p of allPrefixes) { if (trimmed.startsWith(p)) { detectedPrefix = p; break; } }
+                if (!isIgnored) {
+                    for (const p of allPrefixes) { if (trimmed.startsWith(p)) { detectedPrefix = p; break; } }
+                }
 
-                filteredLines.push(line);
-                const idx = filteredLines.length - 1;
-                const displayText = escapeHtml(detectedPrefix ? trimmed.slice(detectedPrefix.length).trim() : trimmed);
+                let filteredIdx = -1;
+                if (!isIgnored) {
+                    filteredLines.push(line);
+                    filteredIdx = filteredLines.length - 1;
+                    filteredToRaw.push(rawIdx);
+                }
+                rawToFiltered.push(filteredIdx);
 
-                const row = document.createElement('div');
-                row.className = `row ${selectedIndex === idx ? 'active' : ''}`;
-                row.id = 'row-' + idx;
-                row.innerHTML = `<span style="width:24px; flex:none; color:var(--text-muted); font-size:11px;">${idx + 1}</span>
-                                 <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;">${detectedPrefix ? `<span class="tag-pill">${escapeHtml(detectedPrefix)}</span>` : ""}${displayText}</span>`;
-                row.onclick = () => selectRow(idx);
-                fragment.appendChild(row);
+                const lineEl = document.createElement('div');
+                lineEl.className = 'line'
+                    + (detectedPrefix ? ' line-tagged' : '')
+                    + (isIgnored ? ' line-ignored' : '')
+                    + (filteredIdx !== -1 && filteredIdx === selectedIndex ? ' line-active' : '');
+                // Una línea vacía necesita contenido (espacio en blanco) para conservar su altura.
+                lineEl.textContent = line.length ? line : ' ';
+                fragment.appendChild(lineEl);
             });
 
-            list.innerHTML = '';
-            list.appendChild(fragment);
+            backdrop.innerHTML = '';
+            backdrop.appendChild(fragment);
+
+            // Si la línea seleccionada dejó de existir (se borró texto), soltamos la selección.
+            if (selectedIndex >= filteredLines.length) selectedIndex = filteredLines.length - 1;
         }
 
+        function syncBackdropScroll() {
+            const textarea = document.getElementById('input');
+            document.getElementById('editorBackdrop').scrollTop = textarea.scrollTop;
+        }
+
+        // Se dispara con clicks, flechas o cualquier movimiento del cursor dentro del
+        // textarea: detecta en qué línea cruda quedó el cursor y, si es una línea
+        // "enviable", la marca como línea activa (sin tocar el valor del textarea).
+        function handleCaretMove() {
+            const textarea = document.getElementById('input');
+            const upTo = textarea.value.slice(0, textarea.selectionStart);
+            const rawIdx = upTo.split('\n').length - 1;
+            const filteredIdx = rawToFiltered[rawIdx];
+            if (filteredIdx === undefined || filteredIdx === -1) return; // línea vacía/ignorada: no cambia la selección
+            if (filteredIdx === selectedIndex) return;
+            selectedIndex = filteredIdx;
+            const line = filteredLines[selectedIndex].trim();
+            styles.forEach(s => { if((s.prefixes || []).some(p => line.startsWith(p))) activeStyleId = s.id; });
+            renderStyleGrid(); renderLines();
+            saveData();
+        }
+
+        // Mueve el cursor real del textarea al inicio de la línea filtrada indicada,
+        // en vez de manipular una lista aparte (ya no existe una lista aparte).
         function selectRow(index) {
             if (index < 0 || index >= filteredLines.length) return;
             selectedIndex = index;
+            const rawIdx = filteredToRaw[index];
             const line = filteredLines[index].trim();
             styles.forEach(s => { if((s.prefixes || []).some(p => line.startsWith(p))) activeStyleId = s.id; });
+
+            const textarea = document.getElementById('input');
+            const offset = rawLines.slice(0, rawIdx).reduce((acc, l) => acc + l.length + 1, 0);
+            textarea.focus();
+            textarea.setSelectionRange(offset, offset + rawLines[rawIdx].length);
+
             renderStyleGrid(); renderLines();
-            document.getElementById('row-' + index)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             saveData();
         }
 
@@ -853,7 +934,7 @@
                     const data = JSON.parse(event.target.result);
                     if (data.styles) styles = data.styles;
                     if (data.ignoreLinePrefixes) document.getElementById('ignoreTags').value = data.ignoreLinePrefixes.join("\n");
-                    saveData(); renderStyleGrid(); renderLines();
+                    saveData(); updateFontDatalist(); updateFolderDatalist(); renderStyleGrid(); renderLines();
                 } catch(err) { alert("¡Error al importar!"); }
             };
             reader.readAsText(e.target.files[0]);
@@ -862,18 +943,14 @@
         window.onload = () => {
             styles = JSON.parse(localStorage.getItem('typer_styles')) || [];
             activeStyleId = localStorage.getItem('typer_active_style');
+            folderCollapsed = JSON.parse(localStorage.getItem('typer_collapsed_folders') || "{}");
             document.getElementById('ignoreTags').value = localStorage.getItem('ignoreTags') || DEFAULT_TAGS;
             document.getElementById('input').value = localStorage.getItem('typer_main_text') || "";
             document.getElementById('scaleInput').value = localStorage.getItem('typer_scale') || "100";
+            updateFontDatalist();
+            updateFolderDatalist();
             renderStyleGrid(); 
             renderLines();
-
-            // 1) Mostramos de inmediato las fuentes guardadas de la sesión anterior (si existen),
-            //    así el desplegable ya funciona sin esperar a Photopea.
-            loadFontsFromCache();
-            // 2) En paralelo (sin bloquear la interfaz) pedimos la lista actualizada a Photopea.
-            //    Si ya había caché, esto solo la refresca una vez; si no, reintenta unas pocas veces.
-            setTimeout(requestFontsWithRetry, 500);
         }
     </script>
 </body>
